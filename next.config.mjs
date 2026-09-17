@@ -1,3 +1,16 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = { reactStrictMode: true };
+const backendUrl = process.env.DOTASK_BACKEND_URL || 'http://localhost:5000';
+
+const nextConfig = {
+  reactStrictMode: true,
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
+      },
+    ];
+  },
+};
+
 export default nextConfig;

@@ -9,7 +9,7 @@ export async function apiFetch<Path extends keyof paths, Method extends keyof pa
   const headers = new Headers(init.headers);
   headers.set('Content-Type', 'application/json');
   if (token) headers.set('Authorization', `Bearer ${token}`);
-  const response = await fetch(`/api/v1${String(path)}`, { ...init, method: String(method).toUpperCase(), headers });
+  const response = await fetch(String(path), { ...init, method: String(method).toUpperCase(), headers });
   if (response.status === 401 && typeof window !== 'undefined') {
     localStorage.removeItem('dotask_token'); localStorage.removeItem('dotask_role'); window.location.href = '/login';
   }
