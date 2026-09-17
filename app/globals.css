@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-ink-950 text-fog antialiased;
+  background-image:
+    radial-gradient(1100px 500px at 85% -10%, rgba(0, 245, 139, 0.07), transparent 60%),
+    radial-gradient(900px 480px at -10% 110%, rgba(0, 245, 139, 0.05), transparent 55%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(0, 245, 139, 0.28);
+  color: #eafff3;
+}
+
+/* Slim, dark scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1e2e25 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #1e2e25;
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #27392e;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Consistent datetime picker indicator on dark inputs */
+input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  filter: invert(0.85) sepia(0.4) saturate(3) hue-rotate(90deg);
+  cursor: pointer;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border border-ink-500/80 bg-ink-800/90 bg-panel-sheen shadow-panel;
+  }
+  .input-base {
+    @apply w-full rounded-lg border border-ink-500 bg-ink-900 px-3 py-2 text-sm text-fog
+      placeholder:text-fog-faint outline-none transition
+      focus:border-neon-500/70 focus:ring-2 focus:ring-neon-500/25;
+  }
+  .label-base {
+    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-fog-dim;
+  }
+  .th-base {
+    @apply whitespace-nowrap px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-fog-dim;
+  }
+}
