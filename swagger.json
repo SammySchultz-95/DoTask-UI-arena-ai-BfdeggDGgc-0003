@@ -4000,96 +4000,62 @@
         }
       }
     },
-    "/api/v1/client/pull": {
+    "/a/time": {
       "post": {
         "tags": [
           "ClientPull"
         ],
+        "description": "Core client protocol endpoint. The DoTask desktop client calls this endpoint periodically to (1) optionally report a response to a previously delivered task, and (2) receive the next pending task (if any).\n\n**Always returns HTTP 200 OK.** On any error (missing/invalid client_id, unhandled server error, database failure, etc.) the server returns the default response `5000:5000` — the client should always be able to parse the response and use the wait times to schedule its next poll.\n\n**Behavior:**\n- **Unknown client_id:** the request is diverted to the registration wait list (PendingClient). The task_response (if any) is completely ignored. Response is `5000:5000` (default waits for unregistered clients).\n- **Known client with task available:** if a task_response is included, it is processed first (the matching 'sent' task is marked 'completed'). Then the oldest 'not_sent' task (FIFO by creation_time) is delivered. Scheduled-but-due tasks are promoted to 'not_sent' lazily before delivery.\n- **Known client, no task:** response is just `wait_time:wait_time_2` from the client's baseline values.\n- **wait_time rule:** when delivering a task, the task's own wait_time/wait_time_2 are used. When no task is delivered, the client's baseline values are used.\n- **Malformed task responses** (unknown task_id, wrong client, already-completed task) are logged as warnings and silently ignored — they never block task delivery.\n- **IP tracking:** the client's IP is added to client_ip_stack and requests_count is incremented on every pull.\n- **Shutdown recovery:** if the client's status was 'shutdown', a successful pull flips it back to 'running'.\n- **Error resilience:** any error returns the default response (e.g. `5000:5000`). The error is logged server-side but never exposed to the client.\n- **Configurable defaults:** the default wait times used for unregistered clients and error responses are configurable by admins via `GET /api/v1/admin/settings` and `PATCH /api/v1/admin/settings`. Default is 5000ms for both.\n**Request format** (text/plain, line by line):\n```\nLine 1: client_id (required)\nLine 2: task_id (optional — only when reporting a task response)\nLine 3+: task_response (optional — may span multiple lines; only when task_id is present)\n```\n**Response format** (text/plain, line by line):\n```\nLine 1: wait_time:wait_time_2 (always present; milliseconds, colon-separated)\nLine 2: task_id (only when a task is being delivered)\nLine 3: task_type_id (only when a task is being delivered)\nLine 4+: task_context (only when a task is being delivered; may span multiple lines)\n```",
         "requestBody": {
+          "description": "Plain-text body following the line-by-line request format shown above.",
           "content": {
-            "application/json": {
+            "text/plain": {
               "schema": {
-                "$ref": "#/components/schemas/PullRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PullRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/PullRequest"
+                "type": "string",
+                "description": "Line-by-line text protocol. See the operation description for the exact format."
+              },
+              "example": "machine-abc-123",
+              "examples": {
+                "simple_pull": {
+                  "summary": "Simple pull (no task response)",
+                  "value": "machine-abc-123"
+                },
+                "with_task_response": {
+                  "summary": "Pull with task response",
+                  "value": "machine-abc-123\ntask-5f8a3b\ndone with the task\nadditional details here"
+                }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "202": {
-            "description": "Accepted",
+          "200": {
+            "description": "Pull result as plain text. Always returns HTTP 200 OK — even on errors. On any error (missing/invalid client_id, unhandled server exception, database failure), the server returns `5000:5000` so the client always receives a parseable response.\n\nLine 1 is always `wait_time:wait_time_2` (milliseconds, colon-separated). If a task is being delivered, lines 2-4+ contain `task_id`, `task_type_id`, and `task_context` (which may span multiple lines). If no task is available, only line 1 is returned.",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PullResponsePending"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PullResponsePending"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PullResponsePending"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "client_id missing or blank.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
+                  "type": "string",
+                  "description": "Line-by-line text protocol. See the operation description for the exact format. Always 200 OK; errors return '5000:5000'."
                 },
-                "example": {
-                  "error": {
-                    "code": "VALIDATION_ERROR",
-                    "message": "client_id missing or blank."
+                "example": "3000:1500",
+                "examples": {
+                  "no_task": {
+                    "summary": "No task available (registered client, queue empty)",
+                    "value": "3000:1500"
+                  },
+                  "with_task": {
+                    "summary": "Task delivered (registered client, task available)",
+                    "value": "3000:1500\ntask-9f2c1d\n1003\nVerify invoice #4471 against PO records.\nCheck the attached documents."
+                  },
+                  "pending_registration": {
+                    "summary": "Unregistered client (goes to wait list) — also the default response on any error",
+                    "value": "5000:5000"
+                  },
+                  "default_error": {
+                    "summary": "Default response on any error or unregistered client (values configurable via PATCH /api/v1/admin/settings)",
+                    "value": "5000:5000"
                   }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Unhandled server error (logged in audit log with actor=server).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                },
-                "example": {
-                  "error": {
-                    "code": "INTERNAL_ERROR",
-                    "message": "Unhandled server error (logged in audit log with actor=server)."
-                  }
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "200 always for registered AND unregistered clients. 'task_available' when one task was delivered (FIFO over not_sent, scheduled-but-due tasks are promoted first); 'no_task' otherwise (unregistered clients get this with wait_time/wait_time_2 = 5000). A 'task_response' included with the pull is processed in the same call before delivery; malformed responses are logged and ignored.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/PullResponseTask"
-                    },
-                    {
-                      "$ref": "#/components/schemas/PullResponseNoTask"
-                    }
-                  ]
                 }
               }
             }
@@ -4886,6 +4852,190 @@
                   "error": {
                     "code": "NOT_FOUND",
                     "message": "client_id is not on the wait list."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/settings": {
+      "get": {
+        "tags": [
+          "ServerConfig"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerConfigResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerConfigResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerConfigResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "ServerConfig"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchServerConfigRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchServerConfigRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchServerConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerConfigResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerConfigResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerConfigResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Value must be > 0.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Value must be > 0."
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role guard: readonlyadmin cannot write.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Role guard: readonlyadmin cannot write."
                   }
                 }
               }
@@ -7203,6 +7353,22 @@
         },
         "additionalProperties": false
       },
+      "PatchServerConfigRequest": {
+        "type": "object",
+        "properties": {
+          "default_response_wait_time": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "default_response_wait_time_2": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "PatchTaskRequest": {
         "type": "object",
         "properties": {
@@ -7322,72 +7488,16 @@
         },
         "additionalProperties": false
       },
-      "PullRequest": {
+      "ServerConfigResponse": {
         "type": "object",
         "properties": {
-          "client_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "task_response": {
-            "$ref": "#/components/schemas/TaskResponseDto"
-          }
-        },
-        "additionalProperties": false
-      },
-      "PullResponseNoTask": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "nullable": true
-          },
-          "wait_time": {
+          "default_response_wait_time": {
             "type": "integer",
             "format": "int32"
           },
-          "wait_time_2": {
+          "default_response_wait_time_2": {
             "type": "integer",
             "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "PullResponsePending": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "nullable": true
-          },
-          "wait_time": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "wait_time_2": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "PullResponseTask": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "nullable": true
-          },
-          "wait_time": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "wait_time_2": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "task": {
-            "$ref": "#/components/schemas/TaskClientResponse"
           }
         },
         "additionalProperties": false
@@ -7500,46 +7610,6 @@
           "totalCount": {
             "type": "integer",
             "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "TaskClientResponse": {
-        "type": "object",
-        "properties": {
-          "task_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "task_type_id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "task_context": {
-            "type": "string",
-            "nullable": true
-          },
-          "wait_time": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "wait_time_2": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "TaskResponseDto": {
-        "type": "object",
-        "properties": {
-          "task_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "response": {
-            "type": "string",
-            "nullable": true
           }
         },
         "additionalProperties": false
@@ -7750,6 +7820,9 @@
     },
     {
       "name": "PendingClient"
+    },
+    {
+      "name": "ServerConfig"
     },
     {
       "name": "Task"
