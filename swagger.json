@@ -2015,6 +2015,98 @@
         ]
       }
     },
+    "/api/v1/admin/files/downloadable/links/{link_id}": {
+      "delete": {
+        "tags": [
+          "AdminFile"
+        ],
+        "parameters": [
+          {
+            "name": "link_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role guard: readonlyadmin cannot write.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Role guard: readonlyadmin cannot write."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Download link not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Download link not found."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/admin/files/downloadable/links/query": {
       "get": {
         "tags": [
@@ -2337,6 +2429,98 @@
     },
     "/api/v1/admin/files/uploadable/links/{link_id}/expire": {
       "post": {
+        "tags": [
+          "AdminFile"
+        ],
+        "parameters": [
+          {
+            "name": "link_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role guard: readonlyadmin cannot write.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Role guard: readonlyadmin cannot write."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Upload link not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Upload link not found."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/files/uploadable/links/{link_id}": {
+      "delete": {
         "tags": [
           "AdminFile"
         ],
