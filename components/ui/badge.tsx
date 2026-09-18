@@ -17,6 +17,9 @@ const TONES: Record<string, string> = {
   expired: 'border-zinc-400/30 bg-zinc-400/10 text-zinc-400',
   revoked: 'border-red-400/40 bg-red-400/10 text-red-300',
   // client / admin statuses
+  running: 'border-neon-500/40 bg-neon-500/10 text-neon-300',
+  shutdown: 'border-zinc-400/30 bg-zinc-400/10 text-zinc-400',
+  suspended: 'border-amber-400/40 bg-amber-400/10 text-amber-300',
   online: 'border-neon-500/40 bg-neon-500/10 text-neon-300',
   offline: 'border-zinc-400/30 bg-zinc-400/10 text-zinc-400',
   disabled: 'border-red-400/40 bg-red-400/10 text-red-300',

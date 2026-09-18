@@ -32,8 +32,15 @@ const SORT_OPTIONS = [
   { value: 'creator', label: 'creator' },
 ];
 
+const TASK_STATUS_OPTIONS = [
+  { value: 'scheduled', label: 'scheduled' },
+  { value: 'not_sent', label: 'not_sent' },
+  { value: 'sent', label: 'sent' },
+  { value: 'completed', label: 'completed' },
+];
+
 const MAIN_FILTERS: FilterField[] = [
-  { kind: 'text', name: 'status', label: 'Status', placeholder: 'e.g. not_sent' },
+  { kind: 'select', name: 'status', label: 'Status', options: TASK_STATUS_OPTIONS },
   { kind: 'text', name: 'task_type_name', label: 'Task type' },
   { kind: 'text', name: 'creator', label: 'Creator' },
   { kind: 'boolean', name: 'has_schedule', label: 'Scheduled' },

@@ -30,8 +30,14 @@ const SORT_OPTIONS = [
   { value: 'requests_count', label: 'requests_count' },
 ];
 
+const CLIENT_STATUS_OPTIONS = [
+  { value: 'running', label: 'running' },
+  { value: 'shutdown', label: 'shutdown' },
+  { value: 'suspended', label: 'suspended' },
+];
+
 const MAIN_FILTERS: FilterField[] = [
-  { kind: 'text', name: 'status', label: 'Status', placeholder: 'e.g. active' },
+  { kind: 'select', name: 'status', label: 'Status', options: CLIENT_STATUS_OPTIONS },
   { kind: 'text', name: 'client_name_contains', label: 'Name contains' },
   { kind: 'boolean', name: 'has_ip', label: 'Has IP' },
   { kind: 'dateRange', label: 'Created', after: 'createdAfter', before: 'createdBefore' },

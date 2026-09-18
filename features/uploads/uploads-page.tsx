@@ -33,9 +33,15 @@ const SORT_OPTIONS = [
   { value: 'created_by', label: 'created_by' },
 ];
 
+const UPLOAD_LINK_STATUS_OPTIONS = [
+  { value: 'active', label: 'active' },
+  { value: 'expired', label: 'expired' },
+  { value: 'used', label: 'used' },
+];
+
 const FILTER_FIELDS: FilterField[] = [
   { kind: 'text', name: 'client_id', label: 'Client ID' },
-  { kind: 'text', name: 'status', label: 'Status', placeholder: 'e.g. active' },
+  { kind: 'select', name: 'status', label: 'Status', options: UPLOAD_LINK_STATUS_OPTIONS },
   {
     kind: 'dateRange',
     label: 'Created',
@@ -71,6 +77,7 @@ export function UploadsPage() {
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [deleteFileTarget, setDeleteFileTarget] = useState<UploadedFileResponse | null>(null);
+  const [deleteLinkTarget, setDeleteLinkTarget] = useState<UploadLinkResponse | null>(null);
 
   const queryParams = useMemo<UploadLinksQueryParams>(
     () => ({
@@ -103,6 +110,16 @@ export function UploadsPage() {
       invalidate();
     },
     onError: (error) => toast.error(errorMessage(error, 'Could not expire the link.')),
+  });
+
+  const deleteLinkMutation = useMutation({
+    mutationFn: uploadLinksApi.remove,
+    onSuccess: () => {
+      toast.success('Upload link deleted.');
+      setSelectedLinkId(null);
+      invalidate();
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not delete the link.')),
   });
 
   const deleteFileMutation = useMutation({
@@ -207,6 +224,21 @@ export function UploadsPage() {
                     : 'Failed to load upload links.'
                   : 'No upload links yet.'
               }
+              actions={
+                writable
+                  ? (row) => (
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        title="Delete upload link"
+                        className="hover:bg-red-500/10 hover:text-red-300"
+                        onClick={() => setDeleteLinkTarget(row)}
+                      >
+                        <Trash2 size={13} />
+                      </Button>
+                    )
+                  : undefined
+              }
             />
           </div>
         </div>
@@ -306,6 +338,25 @@ export function UploadsPage() {
           deleteFileMutation.mutate(deleteFileTarget.file_id, {
             onSuccess: () => setDeleteFileTarget(null),
           });
+        }}
+      />
+
+      <ConfirmDialog
+        open={deleteLinkTarget !== null}
+        title="Delete upload link"
+        body={
+          <>
+            Delete link <span className="font-mono text-fog">{deleteLinkTarget?.link_id}</span>? The
+            client will no longer be able to upload through it. Files already uploaded remain
+            available under the link's history.
+          </>
+        }
+        loading={deleteLinkMutation.isPending}
+        onCancel={() => setDeleteLinkTarget(null)}
+        onConfirm={() => {
+          const linkId = deleteLinkTarget?.link_id;
+          setDeleteLinkTarget(null);
+          if (linkId) deleteLinkMutation.mutate(linkId);
         }}
       />
     </>

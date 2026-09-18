@@ -211,21 +211,20 @@ export function TaskTypesPage() {
         <section className="panel h-fit p-4">
           <div className="mb-3 flex items-center gap-2">
             <Pencil size={15} className="text-neon-400" />
-            <h2 className="text-sm font-semibold text-fog">Edit task type</h2>
+            <h2 className="text-sm font-semibold text-fog">
+              {manage ? 'Edit task type' : 'Task type details'}
+            </h2>
           </div>
-          {!manage ? (
-            <p className="py-8 text-center text-xs text-fog-faint">
-              Super admin only — your role cannot edit task types.
-            </p>
-          ) : selected ? (
+          {selected ? (
             <EditTaskTypeForm
               key={selected.task_type_id}
               taskType={selected}
+              readonly={!manage}
               onDirtyChange={setFormDirty}
             />
           ) : (
             <p className="py-8 text-center text-xs text-fog-faint">
-              Select a task type on the left to edit it.
+              Select a task type on the left to {manage ? 'edit' : 'view'} it.
             </p>
           )}
         </section>
@@ -271,9 +270,12 @@ export function TaskTypesPage() {
 
 function EditTaskTypeForm({
   taskType,
+  readonly = false,
   onDirtyChange,
 }: {
   taskType: TaskTypeResponse;
+  /** View-only mode for normaladmin/readonlyadmin — details visible, no edits. */
+  readonly?: boolean;
   onDirtyChange: (dirty: boolean) => void;
 }) {
   const toast = useToast();
@@ -312,22 +314,34 @@ function EditTaskTypeForm({
         <Input value={String(taskType.task_type_id)} readOnly className="font-mono opacity-70" />
       </Field>
       <Field label="Name" htmlFor="tt-name">
-        <Input id="tt-name" value={name} onChange={(event) => setName(event.target.value)} />
+        <Input
+          id="tt-name"
+          value={name}
+          disabled={readonly}
+          onChange={(event) => setName(event.target.value)}
+        />
       </Field>
       <Field label="Description" htmlFor="tt-desc">
         <Textarea
           id="tt-desc"
           rows={4}
           value={description}
+          disabled={readonly}
           onChange={(event) => setDescription(event.target.value)}
         />
       </Field>
-      <div className="flex justify-end">
-        <Button type="submit" variant="primary" size="sm" disabled={!dirty} loading={mutation.isPending}>
-          <Save size={14} />
-          Save changes
-        </Button>
-      </div>
+      {readonly ? (
+        <p className="text-xs text-fog-faint">
+          You can view task type details, but only superadmins can modify them.
+        </p>
+      ) : (
+        <div className="flex justify-end">
+          <Button type="submit" variant="primary" size="sm" disabled={!dirty} loading={mutation.isPending}>
+            <Save size={14} />
+            Save changes
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

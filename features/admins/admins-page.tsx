@@ -10,7 +10,7 @@ import {
   type PatchAdminRequest,
 } from '@/lib/api-client/endpoints';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canManage, ROLE_LABELS, ROLE_OPTIONS } from '@/lib/auth/roles';
+import { canManage, isReadonly, ROLE_LABELS, ROLE_OPTIONS } from '@/lib/auth/roles';
 import type { AdminRole } from '@/lib/auth/storage';
 import { formatDateTime } from '@/lib/format';
 import { useLiveQuery } from '@/lib/hooks/use-live-query';
@@ -60,6 +60,7 @@ const ALL_FIELDS = [...FILTER_FIELDS, ...ADVANCED_FILTER_FIELDS];
 export function AdminsPage() {
   const { role: myRole, username: myUsername } = useAuth();
   const manage = canManage(myRole);
+  const readonlySelf = isReadonly(myRole);
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -148,6 +149,27 @@ export function AdminsPage() {
     [myUsername],
   );
 
+  // Read-only admins cannot see any other admins — not even other read-only
+  // admins. The API enforces this too; we gate the whole page as well.
+  if (readonlySelf) {
+    return (
+      <>
+        <PageHeader title="Admins" subtitle="Panel accounts and their roles." />
+        <div className="panel">
+          <div className="py-16 text-center">
+            <p className="text-sm text-fog-dim">You don't have access to view admins.</p>
+            <p className="mt-1 text-xs text-fog-faint">
+              Read-only accounts cannot see other admin accounts.
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Normal admins can view (API-scoped) admins but not change them.
+  const canEdit = manage;
+
   return (
     <>
       <PageHeader
@@ -212,7 +234,7 @@ export function AdminsPage() {
                 setPage(1);
                 setPageSize(size);
               }}
-              onRowClick={manage ? (row) => setSelectedUsername(row.username ?? null) : undefined}
+              onRowClick={(row) => setSelectedUsername(row.username ?? null)}
               isSelected={(row) => row.username === selectedUsername}
               emptyMessage={
                 query.isError
@@ -244,29 +266,30 @@ export function AdminsPage() {
         <section className="panel h-fit p-4">
           <div className="mb-3 flex items-center gap-2">
             <Pencil size={15} className="text-neon-400" />
-            <h2 className="text-sm font-semibold text-fog">Edit admin</h2>
+            <h2 className="text-sm font-semibold text-fog">
+              {canEdit ? 'Edit admin' : 'Admin details'}
+            </h2>
           </div>
-          {!manage ? (
-            <p className="py-8 text-center text-xs text-fog-faint">
-              Admin management is superadmin-only — your role can only view this list.
-            </p>
-          ) : selected ? (
+          {selected ? (
             selected.username === myUsername ? (
               <p className="py-8 text-center text-xs leading-relaxed text-fog-faint">
-                This is your own account — the API refuses edits to it (400). Use
-                “Change password” in the sidebar footer instead.
+                This is your own account — the API refuses edits to it (400). Use the Profile
+                menu in the sidebar footer to change your password.
               </p>
             ) : (
               <EditAdminForm
                 key={selected.username}
                 admin={selected}
+                readonly={!canEdit}
                 onDirtyChange={setFormDirty}
                 onSaved={invalidate}
               />
             )
           ) : (
             <p className="py-8 text-center text-xs text-fog-faint">
-              Select an admin to edit role, activation or password.
+              {canEdit
+                ? 'Select an admin to edit role, activation or password.'
+                : 'Select an admin to view their details.'}
             </p>
           )}
         </section>
@@ -309,10 +332,13 @@ export function AdminsPage() {
 
 function EditAdminForm({
   admin,
+  readonly = false,
   onDirtyChange,
   onSaved,
 }: {
   admin: AdminResponse;
+  /** View-only mode for normal admins — details visible, no modifications. */
+  readonly?: boolean;
   onDirtyChange: (dirty: boolean) => void;
   onSaved: () => void;
 }) {
@@ -355,25 +381,34 @@ function EditAdminForm({
         <Select
           id="ea-role"
           value={role}
+          disabled={readonly}
           options={ROLE_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
           onChange={(event) => setRole(event.target.value)}
         />
       </Field>
-      <Checkbox label="Active" checked={isActive} onChange={setIsActive} />
-      <Field label="Reset password" htmlFor="ea-password" hint="Leave empty to keep the current password.">
-        <PasswordInput
-          id="ea-password"
-          value={password}
-          autoComplete="new-password"
-          onChange={(event) => setPassword(event.target.value)}
-        />
-      </Field>
-      <div className="flex justify-end">
-        <Button type="submit" variant="primary" size="sm" disabled={!dirty} loading={mutation.isPending}>
-          <Save size={14} />
-          Save changes
-        </Button>
-      </div>
+      <Checkbox label="Active" checked={isActive} disabled={readonly} onChange={setIsActive} />
+      {!readonly ? (
+        <Field label="Reset password" htmlFor="ea-password" hint="Leave empty to keep the current password.">
+          <PasswordInput
+            id="ea-password"
+            value={password}
+            autoComplete="new-password"
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </Field>
+      ) : null}
+      {readonly ? (
+        <p className="text-xs text-fog-faint">
+          You can view admin details, but only superadmins can modify them.
+        </p>
+      ) : (
+        <div className="flex justify-end">
+          <Button type="submit" variant="primary" size="sm" disabled={!dirty} loading={mutation.isPending}>
+            <Save size={14} />
+            Save changes
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

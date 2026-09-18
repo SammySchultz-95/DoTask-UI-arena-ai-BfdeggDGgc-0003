@@ -55,6 +55,9 @@ export type PatchAdminRequest = Schemas['PatchAdminRequest'];
 export type LogEntryResponse = Schemas['LogEntryResponse'];
 export type LogPage = Schemas['LogEntryResponsePaginatedResponse'];
 
+export type ServerConfigResponse = Schemas['ServerConfigResponse'];
+export type PatchServerConfigRequest = Schemas['PatchServerConfigRequest'];
+
 /** Pagination + sorting parameters shared by every query/search endpoint. */
 export interface PageParams {
   page?: number;
@@ -359,6 +362,11 @@ export const downloadLinksApi = {
       'POST',
       `/api/v1/admin/files/downloadable/links/${encodeURIComponent(linkId)}/expire`,
     ),
+  remove: (linkId: string) =>
+    apiFetch<void>(
+      'DELETE',
+      `/api/v1/admin/files/downloadable/links/${encodeURIComponent(linkId)}`,
+    ),
 };
 
 /* ------------------------------------------------------------------ */
@@ -407,6 +415,11 @@ export const uploadLinksApi = {
     apiFetch<void>(
       'POST',
       `/api/v1/admin/files/uploadable/links/${encodeURIComponent(linkId)}/expire`,
+    ),
+  remove: (linkId: string) =>
+    apiFetch<void>(
+      'DELETE',
+      `/api/v1/admin/files/uploadable/links/${encodeURIComponent(linkId)}`,
     ),
 };
 
@@ -522,4 +535,14 @@ export const logsApi = {
     apiFetch<LogPage>('GET', '/api/v1/admin/logs/query', {
       params: params as QueryParams,
     }),
+};
+
+/* ------------------------------------------------------------------ */
+/* Server config                                                       */
+/* ------------------------------------------------------------------ */
+
+export const serverConfigApi = {
+  get: () => apiFetch<ServerConfigResponse>('GET', '/api/v1/admin/settings'),
+  patch: (body: PatchServerConfigRequest) =>
+    apiFetch<ServerConfigResponse>('PATCH', '/api/v1/admin/settings', { body }),
 };

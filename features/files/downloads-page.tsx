@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useState, type FormEvent } from 'react';
-import { Copy, FileUp, Link2, TimerOff, Upload } from 'lucide-react';
+import { Copy, FileUp, Link2, TimerOff, Trash2, Upload } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   downloadLinksApi,
@@ -130,6 +130,16 @@ export function DownloadsPage() {
     onError: (error) => toast.error(errorMessage(error, 'Could not expire the link.')),
   });
 
+  const deleteLinkMutation = useMutation({
+    mutationFn: downloadLinksApi.remove,
+    onSuccess: () => {
+      toast.success('Download link deleted.');
+      setSelectedLink(null);
+      invalidateFiles();
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not delete the link.')),
+  });
+
   const columns = useMemo<Column<DownloadableFileResponse>[]>(
     () => [
       {
@@ -250,6 +260,8 @@ export function DownloadsPage() {
                   writable={writable}
                   selectedLinkId={selectedLink?.link_id ?? null}
                   onSelectLink={setSelectedLink}
+                  onDeleteLink={(linkId) => deleteLinkMutation.mutate(linkId)}
+                  deleting={deleteLinkMutation.isPending}
                 />
               )}
               emptyMessage={
@@ -398,14 +410,19 @@ function FileLinksSubTable({
   writable,
   selectedLinkId,
   onSelectLink,
+  onDeleteLink,
+  deleting,
 }: {
   fileId: string;
   writable: boolean;
   selectedLinkId: string | null;
   onSelectLink: (link: DownloadLinkResponse) => void;
+  onDeleteLink: (linkId: string) => void;
+  deleting: boolean;
 }) {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortState>({ sortBy: 'created_time', sortDir: 'desc' });
+  const [deleteTarget, setDeleteTarget] = useState<DownloadLinkResponse | null>(null);
 
   const query = useLiveQuery({
     queryKey: ['download-links', { file_id: fileId, page, sortBy: sort.sortBy, sortDir: sort.sortDir }],
@@ -453,6 +470,7 @@ function FileLinksSubTable({
               <th className="px-2 py-1">Created by</th>
               <th className="px-2 py-1">Created</th>
               <th className="px-2 py-1">Expires</th>
+              {writable ? <th className="px-2 py-1 text-right">Actions</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -472,6 +490,22 @@ function FileLinksSubTable({
                 <td className="px-2 py-1.5">{link.created_by ?? '—'}</td>
                 <td className="px-2 py-1.5 whitespace-nowrap text-fog-dim">{formatDateTime(link.created_time)}</td>
                 <td className="px-2 py-1.5 whitespace-nowrap text-fog-dim">{formatDateTime(link.expires_time)}</td>
+                {writable ? (
+                  <td
+                    className="px-2 py-1.5 text-right"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      title="Delete link"
+                      className="hover:bg-red-500/10 hover:text-red-300"
+                      onClick={() => setDeleteTarget(link)}
+                    >
+                      <Trash2 size={12} />
+                    </Button>
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>
@@ -496,6 +530,24 @@ function FileLinksSubTable({
           </button>
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete download link"
+        body={
+          <>
+            Delete link <span className="font-mono text-fog">{deleteTarget?.link_id}</span>? Clients
+            holding this link will no longer be able to download the file through it.
+          </>
+        }
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          const linkId = deleteTarget?.link_id;
+          setDeleteTarget(null);
+          if (linkId) onDeleteLink(linkId);
+        }}
+      />
     </div>
   );
 }

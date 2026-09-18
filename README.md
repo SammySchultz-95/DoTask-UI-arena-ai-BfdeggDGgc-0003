@@ -48,9 +48,18 @@ npm run generate:types
 
 | Capability | superadmin | normaladmin | readonlyadmin |
 | --- | :-: | :-: | :-: |
-| View everything | ✓ | ✓ | ✓ |
-| Ordinary writes (tasks, clients, links, confirm/reject, expire…) | ✓ | ✓ | — |
-| Admins + Task Types create/edit/delete | ✓ | — | — |
+| View everything | ✓ | ✓ | ✓ (except Admins) |
+| Ordinary writes (tasks, clients, links, confirm/reject, expire, delete links…) | ✓ | ✓ | — |
+| Task Types + Admins create/edit/delete | ✓ | — | — |
+| Task Types / Admins details (view-only) | ✓ | ✓ | task types only |
+| Server Config view / modify | ✓ / ✓ | ✓ / — | ✓ / — |
+
+Admin visibility is API-enforced: superadmins see all admins, normal admins
+see only normal + read-only admins, and read-only admins see no admins at all
+(the Admins page is hidden for them).
+
+Sidebar badges show live counts: running clients (status `running`), pending
+clients, and active ("online") admins.
 
 ## Pages
 
@@ -64,9 +73,13 @@ npm run generate:types
 | `/task-types` | Table · create modal · edit panel (superadmin) · 409-aware delete |
 | `/client-tasks` | Client scope dropdown (`?client_id=`), add-task bar, task detail editor (frozen once past `not_sent`/`scheduled`) |
 | `/downloads` | Upload files · links sub-table per file · create/expire links · 409-aware delete |
-| `/uploads` | Single-use upload links · files per link with download/delete |
-| `/admins` | Admin CRUD (superadmin), own-row guard |
+| `/uploads` | Single-use upload links (create/expire/delete) · files per link with download/delete |
+| `/admins` | Admin CRUD (superadmin), view-only details for normal admins, own-row guard |
+| `/server-config` | Default response wait times — viewable by all admins, editable by superadmin |
 | `/logs` | Audit log table + full-context detail |
+
+Clicking the admin avatar at the bottom of the sidebar opens a menu with
+**Profile** (own account info + change password) and **Sign out**.
 
 ## Notes / assumptions
 

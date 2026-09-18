@@ -133,12 +133,18 @@ export function TaskDetailPanel({
           </Field>
           <div className="grid grid-cols-2 gap-3.5">
             <Field label="Status" htmlFor="td-status">
-              <Input
+              <select
                 id="td-status"
                 value={status}
-                placeholder="e.g. not_sent"
                 onChange={(event) => setStatus(event.target.value)}
-              />
+                className="input-base appearance-none pr-8"
+              >
+                {['not_sent', 'scheduled', 'sent', 'completed'].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="Schedule" htmlFor="td-schedule">
               <Input

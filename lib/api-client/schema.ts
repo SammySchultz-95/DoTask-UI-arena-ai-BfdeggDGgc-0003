@@ -1756,6 +1756,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/files/downloadable/links/{link_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    link_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Role guard: readonlyadmin cannot write. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Role guard: readonlyadmin cannot write."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Download link not found. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "NOT_FOUND",
+                         *         "message": "Download link not found."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/files/downloadable/links/query": {
         parameters: {
             query?: never;
@@ -2089,6 +2192,109 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/files/uploadable/links/{link_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    link_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Role guard: readonlyadmin cannot write. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Role guard: readonlyadmin cannot write."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Upload link not found. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "NOT_FOUND",
+                         *         "message": "Upload link not found."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -3344,7 +3550,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/client/pull": {
+    "/a/time": {
         parameters: {
             query?: never;
             header?: never;
@@ -3353,6 +3559,35 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * @description Core client protocol endpoint. The DoTask desktop client calls this endpoint periodically to (1) optionally report a response to a previously delivered task, and (2) receive the next pending task (if any).
+         *
+         *     **Always returns HTTP 200 OK.** On any error (missing/invalid client_id, unhandled server error, database failure, etc.) the server returns the default response `5000:5000` — the client should always be able to parse the response and use the wait times to schedule its next poll.
+         *
+         *     **Behavior:**
+         *     - **Unknown client_id:** the request is diverted to the registration wait list (PendingClient). The task_response (if any) is completely ignored. Response is `5000:5000` (default waits for unregistered clients).
+         *     - **Known client with task available:** if a task_response is included, it is processed first (the matching 'sent' task is marked 'completed'). Then the oldest 'not_sent' task (FIFO by creation_time) is delivered. Scheduled-but-due tasks are promoted to 'not_sent' lazily before delivery.
+         *     - **Known client, no task:** response is just `wait_time:wait_time_2` from the client's baseline values.
+         *     - **wait_time rule:** when delivering a task, the task's own wait_time/wait_time_2 are used. When no task is delivered, the client's baseline values are used.
+         *     - **Malformed task responses** (unknown task_id, wrong client, already-completed task) are logged as warnings and silently ignored — they never block task delivery.
+         *     - **IP tracking:** the client's IP is added to client_ip_stack and requests_count is incremented on every pull.
+         *     - **Shutdown recovery:** if the client's status was 'shutdown', a successful pull flips it back to 'running'.
+         *     - **Error resilience:** any error returns the default response (e.g. `5000:5000`). The error is logged server-side but never exposed to the client.
+         *     - **Configurable defaults:** the default wait times used for unregistered clients and error responses are configurable by admins via `GET /api/v1/admin/settings` and `PATCH /api/v1/admin/settings`. Default is 5000ms for both.
+         *     **Request format** (text/plain, line by line):
+         *     ```
+         *     Line 1: client_id (required)
+         *     Line 2: task_id (optional — only when reporting a task response)
+         *     Line 3+: task_response (optional — may span multiple lines; only when task_id is present)
+         *     ```
+         *     **Response format** (text/plain, line by line):
+         *     ```
+         *     Line 1: wait_time:wait_time_2 (always present; milliseconds, colon-separated)
+         *     Line 2: task_id (only when a task is being delivered)
+         *     Line 3: task_type_id (only when a task is being delivered)
+         *     Line 4+: task_context (only when a task is being delivered; may span multiple lines)
+         *     ```
+         */
         post: {
             parameters: {
                 query?: never;
@@ -3360,66 +3595,26 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: {
+            /** @description Plain-text body following the line-by-line request format shown above. */
+            requestBody: {
                 content: {
-                    "application/json": components["schemas"]["PullRequest"];
-                    "text/json": components["schemas"]["PullRequest"];
-                    "application/*+json": components["schemas"]["PullRequest"];
+                    /** @example machine-abc-123 */
+                    "text/plain": string;
                 };
             };
             responses: {
-                /** @description 200 always for registered AND unregistered clients. 'task_available' when one task was delivered (FIFO over not_sent, scheduled-but-due tasks are promoted first); 'no_task' otherwise (unregistered clients get this with wait_time/wait_time_2 = 5000). A 'task_response' included with the pull is processed in the same call before delivery; malformed responses are logged and ignored. */
+                /**
+                 * @description Pull result as plain text. Always returns HTTP 200 OK — even on errors. On any error (missing/invalid client_id, unhandled server exception, database failure), the server returns `5000:5000` so the client always receives a parseable response.
+                 *
+                 *     Line 1 is always `wait_time:wait_time_2` (milliseconds, colon-separated). If a task is being delivered, lines 2-4+ contain `task_id`, `task_type_id`, and `task_context` (which may span multiple lines). If no task is available, only line 1 is returned.
+                 */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["PullResponseTask"] | components["schemas"]["PullResponseNoTask"];
-                    };
-                };
-                /** @description Accepted */
-                202: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["PullResponsePending"];
-                        "application/json": components["schemas"]["PullResponsePending"];
-                        "text/json": components["schemas"]["PullResponsePending"];
-                    };
-                };
-                /** @description client_id missing or blank. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        /**
-                         * @example {
-                         *       "error": {
-                         *         "code": "VALIDATION_ERROR",
-                         *         "message": "client_id missing or blank."
-                         *       }
-                         *     }
-                         */
-                        "application/json": components["schemas"]["ErrorEnvelope"];
-                    };
-                };
-                /** @description Unhandled server error (logged in audit log with actor=server). */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        /**
-                         * @example {
-                         *       "error": {
-                         *         "code": "INTERNAL_ERROR",
-                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
-                         *       }
-                         *     }
-                         */
-                        "application/json": components["schemas"]["ErrorEnvelope"];
+                        /** @example 3000:1500 */
+                        "text/plain": string;
                     };
                 };
             };
@@ -4118,6 +4313,179 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServerConfigResponse"];
+                        "application/json": components["schemas"]["ServerConfigResponse"];
+                        "text/json": components["schemas"]["ServerConfigResponse"];
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["PatchServerConfigRequest"];
+                    "text/json": components["schemas"]["PatchServerConfigRequest"];
+                    "application/*+json": components["schemas"]["PatchServerConfigRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServerConfigResponse"];
+                        "application/json": components["schemas"]["ServerConfigResponse"];
+                        "text/json": components["schemas"]["ServerConfigResponse"];
+                    };
+                };
+                /** @description Value must be > 0. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "VALIDATION_ERROR",
+                         *         "message": "Value must be > 0."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Role guard: readonlyadmin cannot write. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Role guard: readonlyadmin cannot write."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/api/v1/admin/tasks": {
@@ -5662,6 +6030,12 @@ export interface components {
             wait_time_2?: number | null;
             status?: string | null;
         };
+        PatchServerConfigRequest: {
+            /** Format: int32 */
+            default_response_wait_time?: number | null;
+            /** Format: int32 */
+            default_response_wait_time_2?: number | null;
+        };
         PatchTaskRequest: {
             response?: string | null;
             status?: string | null;
@@ -5702,31 +6076,11 @@ export interface components {
             /** Format: int32 */
             totalCount?: number;
         };
-        PullRequest: {
-            client_id?: string | null;
-            task_response?: components["schemas"]["TaskResponseDto"];
-        };
-        PullResponseNoTask: {
-            status?: string | null;
+        ServerConfigResponse: {
             /** Format: int32 */
-            wait_time?: number;
+            default_response_wait_time?: number;
             /** Format: int32 */
-            wait_time_2?: number;
-        };
-        PullResponsePending: {
-            status?: string | null;
-            /** Format: int32 */
-            wait_time?: number;
-            /** Format: int32 */
-            wait_time_2?: number;
-        };
-        PullResponseTask: {
-            status?: string | null;
-            /** Format: int32 */
-            wait_time?: number;
-            /** Format: int32 */
-            wait_time_2?: number;
-            task?: components["schemas"]["TaskClientResponse"];
+            default_response_wait_time_2?: number;
         };
         "StringDateTime<>f__AnonymousType2": {
             status?: string | null;
@@ -5766,20 +6120,6 @@ export interface components {
             pageSize?: number;
             /** Format: int32 */
             totalCount?: number;
-        };
-        TaskClientResponse: {
-            task_id?: string | null;
-            /** Format: int32 */
-            task_type_id?: number;
-            task_context?: string | null;
-            /** Format: int32 */
-            wait_time?: number;
-            /** Format: int32 */
-            wait_time_2?: number;
-        };
-        TaskResponseDto: {
-            task_id?: string | null;
-            response?: string | null;
         };
         TaskTypeResponse: {
             /** Format: int32 */
