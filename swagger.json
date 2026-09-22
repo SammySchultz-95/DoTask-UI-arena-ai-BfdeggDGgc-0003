@@ -280,6 +280,14 @@
             }
           },
           {
+            "name": "has_ip",
+            "in": "query",
+            "description": "Filter to admins whose admin_ip_stack contains this IP address. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24').",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "description": "1-based page index (default 1).",
@@ -3725,7 +3733,7 @@
           {
             "name": "has_ip",
             "in": "query",
-            "description": "Filter to clients whose client_ip_stack contains this IP address.",
+            "description": "Filter to clients whose client_ip_stack contains this IP address. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24').",
             "schema": {
               "type": "string"
             }
@@ -3775,6 +3783,30 @@
             }
           },
           {
+            "name": "online_status",
+            "in": "query",
+            "description": "Exact match: online | offline.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "last_max_wait_time_min",
+            "in": "query",
+            "description": "last_max_wait_time >= value (ms).",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "last_max_wait_time_max",
+            "in": "query",
+            "description": "last_max_wait_time <= value (ms).",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "description": "1-based page index (default 1).",
@@ -3793,7 +3825,7 @@
           {
             "name": "sortBy",
             "in": "query",
-            "description": "creation_time (default) | client_id | client_name | last_check_in | status | wait_time | wait_time_2 | requests_count.",
+            "description": "creation_time (default) | client_id | client_name | last_check_in | status | wait_time | wait_time_2 | requests_count | last_max_wait_time | online_status.",
             "schema": {
               "type": "string"
             }
@@ -4394,6 +4426,14 @@
             }
           },
           {
+            "name": "actor_ip",
+            "in": "query",
+            "description": "Filter by the IP address of the actor. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24'). Empty for server-generated logs.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "level",
             "in": "query",
             "description": "Exact match: info | warning | error.",
@@ -4446,7 +4486,7 @@
           {
             "name": "sortBy",
             "in": "query",
-            "description": "time (default) | log_id | actor | level.",
+            "description": "time (default) | log_id | actor | actor_ip | level.",
             "schema": {
               "type": "string"
             }
@@ -4601,7 +4641,7 @@
           {
             "name": "has_ip",
             "in": "query",
-            "description": "Filter to entries whose client_ip_stack contains this IP address.",
+            "description": "Filter to entries whose client_ip_stack contains this IP address. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24').",
             "schema": {
               "type": "string"
             }
@@ -5438,7 +5478,7 @@
             }
           },
           "400": {
-            "description": "Invalid status value, attempted move into 'scheduled', or schedule change on a non-scheduled task.",
+            "description": "Attempted to modify system-managed field (status, send_time, response_time, response, client_pull_ip, client_response_ip), or schedule change on a non-scheduled task.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5447,7 +5487,7 @@
                 "example": {
                   "error": {
                     "code": "VALIDATION_ERROR",
-                    "message": "Invalid status value, attempted move into 'scheduled', or schedule change on a non-scheduled task."
+                    "message": "Attempted to modify system-managed field (status, send_time, response_time, response, client_pull_ip, client_response_ip), or schedule change on a non-scheduled task."
                   }
                 }
               }
@@ -5780,7 +5820,7 @@
           {
             "name": "client_pull_ip",
             "in": "query",
-            "description": "Exact match on the IP that delivered the task.",
+            "description": "Filter by the IP that delivered the task. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24').",
             "schema": {
               "type": "string"
             }
@@ -5788,7 +5828,7 @@
           {
             "name": "client_response_ip",
             "in": "query",
-            "description": "Exact match on the IP that submitted the response.",
+            "description": "Filter by the IP that submitted the response. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24').",
             "schema": {
               "type": "string"
             }
@@ -6969,6 +7009,13 @@
           "creation_time": {
             "type": "string",
             "format": "date-time"
+          },
+          "admin_ip_stack": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -7053,6 +7100,14 @@
             "items": {
               "type": "string"
             },
+            "nullable": true
+          },
+          "last_max_wait_time": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "online_status": {
+            "type": "string",
             "nullable": true
           }
         },
@@ -7418,6 +7473,10 @@
             "type": "string",
             "nullable": true
           },
+          "actor_ip": {
+            "type": "string",
+            "nullable": true
+          },
           "context": {
             "type": "string",
             "nullable": true
@@ -7556,24 +7615,6 @@
       "PatchTaskRequest": {
         "type": "object",
         "properties": {
-          "response": {
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "type": "string",
-            "nullable": true
-          },
-          "send_time": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "response_time": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
           "task_context": {
             "type": "string",
             "nullable": true
@@ -7586,14 +7627,6 @@
           "wait_time_2": {
             "type": "integer",
             "format": "int32",
-            "nullable": true
-          },
-          "client_pull_ip": {
-            "type": "string",
-            "nullable": true
-          },
-          "client_response_ip": {
-            "type": "string",
             "nullable": true
           },
           "schedule": {
