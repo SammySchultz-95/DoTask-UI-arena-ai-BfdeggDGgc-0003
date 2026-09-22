@@ -16,7 +16,7 @@ import { StatusBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { AddTaskForm } from '@/features/tasks/add-task-form';
-import { ClientEditForm } from './client-edit-form';
+import { ClientInfoPanel } from './client-info-panel';
 import { useClientsQuery, useDeleteClient } from './hooks';
 
 const SORT_OPTIONS = [
@@ -28,6 +28,8 @@ const SORT_OPTIONS = [
   { value: 'wait_time', label: 'wait_time' },
   { value: 'wait_time_2', label: 'wait_time_2' },
   { value: 'requests_count', label: 'requests_count' },
+  { value: 'last_max_wait_time', label: 'last_max_wait_time' },
+  { value: 'online_status', label: 'online_status' },
 ];
 
 const CLIENT_STATUS_OPTIONS = [
@@ -36,10 +38,21 @@ const CLIENT_STATUS_OPTIONS = [
   { value: 'suspended', label: 'suspended' },
 ];
 
+const ONLINE_STATUS_OPTIONS = [
+  { value: 'online', label: 'online' },
+  { value: 'offline', label: 'offline' },
+];
+
 const MAIN_FILTERS: FilterField[] = [
   { kind: 'select', name: 'status', label: 'Status', options: CLIENT_STATUS_OPTIONS },
+  { kind: 'select', name: 'online_status', label: 'Online status', options: ONLINE_STATUS_OPTIONS },
   { kind: 'text', name: 'client_name_contains', label: 'Name contains' },
-  { kind: 'boolean', name: 'has_ip', label: 'Has IP' },
+  {
+    kind: 'text',
+    name: 'has_ip',
+    label: 'Has IP',
+    placeholder: 'e.g. 192.168.1.5 or 10.0.0.0/24',
+  },
   { kind: 'dateRange', label: 'Created', after: 'createdAfter', before: 'createdBefore' },
   {
     kind: 'dateRange',
@@ -54,6 +67,12 @@ const ADVANCED_FILTERS: FilterField[] = [
   { kind: 'text', name: 'client_name', label: 'Client name (exact)' },
   { kind: 'numberRange', label: 'Wait time', exact: 'wait_time', min: 'wait_time_min', max: 'wait_time_max' },
   { kind: 'numberRange', label: 'Wait time 2', exact: 'wait_time_2', min: 'wait_time_2_min', max: 'wait_time_2_max' },
+  {
+    kind: 'numberRange',
+    label: 'Last max wait time',
+    min: 'last_max_wait_time_min',
+    max: 'last_max_wait_time_max',
+  },
   {
     kind: 'numberRange',
     label: 'Requests count',
@@ -106,6 +125,11 @@ export function ClientsPage() {
       },
       { key: 'client_name', header: 'Name', render: (row) => row.client_name ?? '—' },
       {
+        key: 'online_status',
+        header: 'Online',
+        render: (row) => <StatusBadge value={row.online_status} />,
+      },
+      {
         key: 'last_check_in',
         header: 'Last check-in',
         render: (row) => (
@@ -118,13 +142,6 @@ export function ClientsPage() {
         header: 'Requests',
         className: 'text-right',
         render: (row) => <span className="font-mono text-xs">{row.requests_count}</span>,
-      },
-      {
-        key: 'creation_time',
-        header: 'Created',
-        render: (row) => (
-          <span className="whitespace-nowrap text-xs text-fog-dim">{formatDateTime(row.creation_time)}</span>
-        ),
       },
       {
         key: 'latest_ip',
@@ -240,13 +257,13 @@ export function ClientsPage() {
           <section className="panel p-4">
             <div className="mb-3 flex items-center gap-2">
               <MonitorSmartphone size={15} className="text-neon-400" />
-              <h2 className="text-sm font-semibold text-fog">Edit client</h2>
+              <h2 className="text-sm font-semibold text-fog">Client Info</h2>
             </div>
             {selected ? (
-              <ClientEditForm client={selected} readonly={!writable} onDirtyChange={setFormDirty} />
+              <ClientInfoPanel client={selected} readonly={!writable} onDirtyChange={setFormDirty} />
             ) : (
               <p className="py-8 text-center text-xs text-fog-faint">
-                Select a client on the left to edit it.
+                Select a client on the left to see its information.
               </p>
             )}
           </section>

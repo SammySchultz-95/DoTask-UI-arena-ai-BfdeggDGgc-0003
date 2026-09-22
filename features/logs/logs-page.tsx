@@ -17,11 +17,18 @@ const SORT_OPTIONS = [
   { value: 'time', label: 'time' },
   { value: 'log_id', label: 'log_id' },
   { value: 'actor', label: 'actor' },
+  { value: 'actor_ip', label: 'actor_ip' },
   { value: 'level', label: 'level' },
 ];
 
 const FILTER_FIELDS: FilterField[] = [
   { kind: 'text', name: 'actor_contains', label: 'Actor contains' },
+  {
+    kind: 'text',
+    name: 'actor_ip',
+    label: 'Actor IP',
+    placeholder: 'e.g. 192.168.1.5 or 10.0.0.0/24',
+  },
   { kind: 'text', name: 'level', label: 'Level', placeholder: 'e.g. information' },
   { kind: 'dateRange', label: 'Time', after: 'timeAfter', before: 'timeBefore' },
 ];
@@ -75,6 +82,11 @@ export function LogsPage() {
         render: (row) => <span className="whitespace-nowrap text-xs">{formatDateTime(row.time)}</span>,
       },
       { key: 'actor', header: 'Actor', render: (row) => <span className="font-mono text-xs text-neon-300">{row.actor ?? '—'}</span> },
+      {
+        key: 'actor_ip',
+        header: 'Actor IP',
+        render: (row) => <span className="font-mono text-xs text-fog-dim">{row.actor_ip ?? '—'}</span>,
+      },
       { key: 'level', header: 'Level', render: (row) => <StatusBadge value={row.level} /> },
       {
         key: 'context',
@@ -173,6 +185,10 @@ export function LogsPage() {
                 <div className="flex justify-between">
                   <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fog-faint">Actor</dt>
                   <dd className="font-mono">{selected.actor ?? '—'}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fog-faint">Actor IP</dt>
+                  <dd className="font-mono">{selected.actor_ip ?? '—'}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fog-faint">Time</dt>

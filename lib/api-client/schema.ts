@@ -218,6 +218,8 @@ export interface paths {
                     creation_time_after?: string;
                     /** @description creation_time <= (ISO-8601). */
                     creation_time_before?: string;
+                    /** @description Filter to admins whose admin_ip_stack contains this IP address. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24'). */
+                    has_ip?: string;
                     /** @description 1-based page index (default 1). */
                     page?: number;
                     /** @description Items per page (default 50). */
@@ -3172,7 +3174,7 @@ export interface paths {
                     requests_count_min?: number;
                     /** @description requests_count <= value. */
                     requests_count_max?: number;
-                    /** @description Filter to clients whose client_ip_stack contains this IP address. */
+                    /** @description Filter to clients whose client_ip_stack contains this IP address. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24'). */
                     has_ip?: string;
                     /** @description creation_time >= (ISO-8601). Alias: creation_time_after. */
                     createdAfter?: string;
@@ -3184,11 +3186,17 @@ export interface paths {
                     last_check_in_before?: string;
                     /** @description true/false — filter clients that have (or have not) ever checked in. */
                     has_checked_in?: boolean;
+                    /** @description Exact match: online | offline. */
+                    online_status?: string;
+                    /** @description last_max_wait_time >= value (ms). */
+                    last_max_wait_time_min?: number;
+                    /** @description last_max_wait_time <= value (ms). */
+                    last_max_wait_time_max?: number;
                     /** @description 1-based page index (default 1). */
                     page?: number;
                     /** @description Items per page (default 50). */
                     pageSize?: number;
-                    /** @description creation_time (default) | client_id | client_name | last_check_in | status | wait_time | wait_time_2 | requests_count. */
+                    /** @description creation_time (default) | client_id | client_name | last_check_in | status | wait_time | wait_time_2 | requests_count | last_max_wait_time | online_status. */
                     sortBy?: string;
                     /** @description asc | desc (default desc). */
                     sortDir?: string;
@@ -3791,6 +3799,8 @@ export interface paths {
                     actor?: string;
                     /** @description Case-insensitive partial match on actor. */
                     actor_contains?: string;
+                    /** @description Filter by the IP address of the actor. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24'). Empty for server-generated logs. */
+                    actor_ip?: string;
                     /** @description Exact match: info | warning | error. */
                     level?: string;
                     /** @description Case-insensitive partial (LIKE %v%) match on the event text. Aliases: q, context_contains. */
@@ -3803,7 +3813,7 @@ export interface paths {
                     page?: number;
                     /** @description Items per page (default 50). */
                     pageSize?: number;
-                    /** @description time (default) | log_id | actor | level. */
+                    /** @description time (default) | log_id | actor | actor_ip | level. */
                     sortBy?: string;
                     /** @description asc | desc (default desc). */
                     sortDir?: string;
@@ -3902,7 +3912,7 @@ export interface paths {
                     requests_count_min?: number;
                     /** @description requests_count <= value. */
                     requests_count_max?: number;
-                    /** @description Filter to entries whose client_ip_stack contains this IP address. */
+                    /** @description Filter to entries whose client_ip_stack contains this IP address. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24'). */
                     has_ip?: string;
                     /** @description 1-based page index (default 1). */
                     page?: number;
@@ -4842,7 +4852,7 @@ export interface paths {
                         "text/json": components["schemas"]["TaskAdminResponse"];
                     };
                 };
-                /** @description Invalid status value, attempted move into 'scheduled', or schedule change on a non-scheduled task. */
+                /** @description Attempted to modify system-managed field (status, send_time, response_time, response, client_pull_ip, client_response_ip), or schedule change on a non-scheduled task. */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -4852,7 +4862,7 @@ export interface paths {
                          * @example {
                          *       "error": {
                          *         "code": "VALIDATION_ERROR",
-                         *         "message": "Invalid status value, attempted move into 'scheduled', or schedule change on a non-scheduled task."
+                         *         "message": "Attempted to modify system-managed field (status, send_time, response_time, response, client_pull_ip, client_response_ip), or schedule change on a non-scheduled task."
                          *       }
                          *     }
                          */
@@ -4953,9 +4963,9 @@ export interface paths {
                     status?: string;
                     /** @description Exact match on the admin username that created the task. */
                     creator?: string;
-                    /** @description Exact match on the IP that delivered the task. */
+                    /** @description Filter by the IP that delivered the task. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24'). */
                     client_pull_ip?: string;
-                    /** @description Exact match on the IP that submitted the response. */
+                    /** @description Filter by the IP that submitted the response. Supports exact IP (e.g., '192.168.1.5') or CIDR notation (e.g., '192.168.1.0/24'). */
                     client_response_ip?: string;
                     /** @description true/false — filter tasks that have (or have not) a response. */
                     has_response?: boolean;
@@ -5834,6 +5844,7 @@ export interface components {
             must_change_password?: boolean;
             /** Format: date-time */
             creation_time?: string;
+            admin_ip_stack?: string[] | null;
         };
         AdminResponsePaginatedResponse: {
             items?: components["schemas"]["AdminResponse"][] | null;
@@ -5863,6 +5874,9 @@ export interface components {
             /** Format: int32 */
             requests_count?: number;
             client_ip_stack?: string[] | null;
+            /** Format: int32 */
+            last_max_wait_time?: number;
+            online_status?: string | null;
         };
         ClientResponsePaginatedResponse: {
             items?: components["schemas"]["ClientResponse"][] | null;
@@ -5993,6 +6007,7 @@ export interface components {
             /** Format: date-time */
             time?: string;
             actor?: string | null;
+            actor_ip?: string | null;
             context?: string | null;
             level?: string | null;
         };
@@ -6037,19 +6052,11 @@ export interface components {
             default_response_wait_time_2?: number | null;
         };
         PatchTaskRequest: {
-            response?: string | null;
-            status?: string | null;
-            /** Format: date-time */
-            send_time?: string | null;
-            /** Format: date-time */
-            response_time?: string | null;
             task_context?: string | null;
             /** Format: int32 */
             wait_time?: number | null;
             /** Format: int32 */
             wait_time_2?: number | null;
-            client_pull_ip?: string | null;
-            client_response_ip?: string | null;
             /** Format: date-time */
             schedule?: string | null;
         };

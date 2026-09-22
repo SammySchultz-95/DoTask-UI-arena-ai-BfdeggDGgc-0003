@@ -48,6 +48,12 @@ const FILTER_FIELDS: FilterField[] = [
 const ADVANCED_FILTER_FIELDS: FilterField[] = [
   { kind: 'text', name: 'username', label: 'Username (exact)' },
   {
+    kind: 'text',
+    name: 'has_ip',
+    label: 'Has IP',
+    placeholder: 'e.g. 192.168.1.5 or 10.0.0.0/24',
+  },
+  {
     kind: 'dateRange',
     label: 'Created',
     after: 'creation_time_after',

@@ -99,16 +99,21 @@ export interface ClientsQueryParams extends PageParams {
   client_name?: string;
   client_name_contains?: string;
   status?: string;
+  /** Exact match: online | offline. */
+  online_status?: string;
   wait_time?: number;
   wait_time_min?: number;
   wait_time_max?: number;
   wait_time_2?: number;
   wait_time_2_min?: number;
   wait_time_2_max?: number;
+  last_max_wait_time_min?: number;
+  last_max_wait_time_max?: number;
   requests_count?: number;
   requests_count_min?: number;
   requests_count_max?: number;
-  has_ip?: 'true' | 'false';
+  /** IP address or CIDR matched against client_ip_stack. */
+  has_ip?: string;
   createdAfter?: string;
   createdBefore?: string;
   last_check_in_after?: string;
@@ -160,7 +165,8 @@ export interface PendingClientsQueryParams extends PageParams {
   requests_count?: number;
   requests_count_min?: number;
   requests_count_max?: number;
-  has_ip?: 'true' | 'false';
+  /** IP address or CIDR matched against client_ip_stack. */
+  has_ip?: string;
 }
 
 export const pendingClientsApi = {
@@ -490,6 +496,8 @@ export interface AdminsQueryParams extends PageParams {
   must_change_password?: boolean;
   creation_time_after?: string;
   creation_time_before?: string;
+  /** IP address or CIDR matched against admin_ip_stack. */
+  has_ip?: string;
 }
 
 export const adminsApi = {
@@ -523,6 +531,8 @@ export interface LogsQueryParams extends PageParams {
   log_id_max?: number;
   actor?: string;
   actor_contains?: string;
+  /** IP address or CIDR matched against the actor's IP. */
+  actor_ip?: string;
   level?: string;
   /** Partial match on context — aliases `q` / `context_contains`. */
   context?: string;
