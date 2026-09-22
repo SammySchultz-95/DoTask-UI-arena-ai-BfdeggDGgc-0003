@@ -39,6 +39,7 @@ export function ClientInfoPanel({
   const [waitTime, setWaitTime] = useState(String(client.wait_time));
   const [waitTime2, setWaitTime2] = useState(String(client.wait_time_2));
   const [status, setStatus] = useState(client.status ?? '');
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Reset the form when a different row is selected.
   useEffect(() => {
@@ -46,6 +47,7 @@ export function ClientInfoPanel({
     setWaitTime(String(client.wait_time));
     setWaitTime2(String(client.wait_time_2));
     setStatus(client.status ?? '');
+    setFormError(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
 
@@ -63,13 +65,20 @@ export function ClientInfoPanel({
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!clientId) return;
+    const wait = Number(waitTime);
+    const wait2 = Number(waitTime2);
+    if (waitTime === '' || waitTime2 === '' || !Number.isInteger(wait) || !Number.isInteger(wait2)) {
+      setFormError('Wait times must be whole numbers (milliseconds).');
+      return;
+    }
+    setFormError(null);
     patchClient.mutate(
       {
         clientId,
         body: {
           client_name: clientName,
-          wait_time: Number(waitTime),
-          wait_time_2: Number(waitTime2),
+          wait_time: wait,
+          wait_time_2: wait2,
           status: status || undefined,
         },
       },
@@ -141,27 +150,35 @@ export function ClientInfoPanel({
           />
         </Field>
         <div className="grid grid-cols-2 gap-3.5">
-          <Field label="Wait time (s)" htmlFor="ci-wait">
+          <Field label="Wait time (ms)" htmlFor="ci-wait">
             <Input
               id="ci-wait"
               type="number"
               min={0}
+              step={1}
               value={waitTime}
               disabled={readonly}
               onChange={(event) => setWaitTime(event.target.value)}
             />
           </Field>
-          <Field label="Wait time 2 (s)" htmlFor="ci-wait2">
+          <Field label="Wait time 2 (ms)" htmlFor="ci-wait2">
             <Input
               id="ci-wait2"
               type="number"
               min={0}
+              step={1}
               value={waitTime2}
               disabled={readonly}
               onChange={(event) => setWaitTime2(event.target.value)}
             />
           </Field>
         </div>
+
+        {formError ? (
+          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+            {formError}
+          </p>
+        ) : null}
 
         {readonly ? (
           <p className="text-xs text-fog-faint">

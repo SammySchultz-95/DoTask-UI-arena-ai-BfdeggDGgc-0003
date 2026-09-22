@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { CheckCircle2, XCircle } from 'lucide-react';
-import type {
-  PendingClientResponse,
-  PendingClientsQueryParams,
+import { useQuery } from '@tanstack/react-query';
+import {
+  serverConfigApi,
+  type PendingClientResponse,
+  type PendingClientsQueryParams,
 } from '@/lib/api-client/endpoints';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canWrite } from '@/lib/auth/roles';
@@ -265,9 +267,29 @@ function ConfirmPendingClientModal({
   onSubmit: (body: { client_name: string; wait_time: number; wait_time_2: number }) => void;
 }) {
   const [clientName, setClientName] = useState(target.client_id ?? '');
-  const [waitTime, setWaitTime] = useState('60');
-  const [waitTime2, setWaitTime2] = useState('60');
+  const [waitTime, setWaitTime] = useState('');
+  const [waitTime2, setWaitTime2] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // New clients start with the server-config default wait times.
+  const serverConfig = useQuery({
+    queryKey: ['server-config'],
+    queryFn: serverConfigApi.get,
+    staleTime: 60_000,
+  });
+  const waitTouched = useRef(false);
+  const wait2Touched = useRef(false);
+
+  useEffect(() => {
+    const config = serverConfig.data;
+    if (!config) return;
+    if (!waitTouched.current) {
+      setWaitTime((current) => current || String(config.default_response_wait_time));
+    }
+    if (!wait2Touched.current) {
+      setWaitTime2((current) => current || String(config.default_response_wait_time_2));
+    }
+  }, [serverConfig.data]);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -278,8 +300,13 @@ function ConfirmPendingClientModal({
       setError('Client name is required.');
       return;
     }
-    if (Number.isNaN(parsedWait) || Number.isNaN(parsedWait2)) {
-      setError('Wait times must be numbers.');
+    if (
+      waitTime === '' ||
+      waitTime2 === '' ||
+      !Number.isInteger(parsedWait) ||
+      !Number.isInteger(parsedWait2)
+    ) {
+      setError('Wait times must be whole numbers (milliseconds).');
       return;
     }
     onSubmit({
@@ -305,22 +332,32 @@ function ConfirmPendingClientModal({
           />
         </Field>
         <div className="grid grid-cols-2 gap-3.5">
-          <Field label="Wait time (s)" htmlFor="pc-wait">
+          <Field label="Wait time (ms)" htmlFor="pc-wait">
             <Input
               id="pc-wait"
               type="number"
               min={0}
+              step={1}
               value={waitTime}
-              onChange={(event) => setWaitTime(event.target.value)}
+              placeholder={serverConfig.isLoading ? '…' : 'default'}
+              onChange={(event) => {
+                waitTouched.current = true;
+                setWaitTime(event.target.value);
+              }}
             />
           </Field>
-          <Field label="Wait time 2 (s)" htmlFor="pc-wait2">
+          <Field label="Wait time 2 (ms)" htmlFor="pc-wait2">
             <Input
               id="pc-wait2"
               type="number"
               min={0}
+              step={1}
               value={waitTime2}
-              onChange={(event) => setWaitTime2(event.target.value)}
+              placeholder={serverConfig.isLoading ? '…' : 'default'}
+              onChange={(event) => {
+                wait2Touched.current = true;
+                setWaitTime2(event.target.value);
+              }}
             />
           </Field>
         </div>

@@ -3579,7 +3579,8 @@ export interface paths {
          *     - **wait_time rule:** when delivering a task, the task's own wait_time/wait_time_2 are used. When no task is delivered, the client's baseline values are used.
          *     - **Malformed task responses** (unknown task_id, wrong client, already-completed task) are logged as warnings and silently ignored — they never block task delivery.
          *     - **IP tracking:** the client's IP is added to client_ip_stack and requests_count is incremented on every pull.
-         *     - **Shutdown recovery:** if the client's status was 'shutdown', a successful pull flips it back to 'running'.
+         *     - **Shutdown behavior:** if the client's status is 'shutdown', the server returns `0:0` — no wait times, no tasks, no responses accepted. The client should stop polling or contact the admin.
+         *     - **Suspended behavior:** if the client's status is 'suspended', the server accepts task responses and sends wait times, but does NOT deliver any tasks.
          *     - **Error resilience:** any error returns the default response (e.g. `5000:5000`). The error is logged server-side but never exposed to the client.
          *     - **Configurable defaults:** the default wait times used for unregistered clients and error responses are configurable by admins via `GET /api/v1/admin/settings` and `PATCH /api/v1/admin/settings`. Default is 5000ms for both.
          *     **Request format** (text/plain, line by line):
@@ -5937,6 +5938,10 @@ export interface components {
             expires_time?: string | null;
         };
         DashboardSummaryResponse: {
+            /** Format: int32 */
+            total_clients?: number;
+            /** Format: int32 */
+            online_clients?: number;
             clients_by_status?: {
                 [key: string]: number;
             } | null;

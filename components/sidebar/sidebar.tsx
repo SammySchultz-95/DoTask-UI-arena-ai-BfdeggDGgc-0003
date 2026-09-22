@@ -79,7 +79,7 @@ export function Sidebar() {
     queryKey: ['dashboard-summary'],
     queryFn: dashboardApi.summary,
   });
-  const runningClients = summary.data?.clients_by_status?.running ?? 0;
+  const onlineClients = summary.data?.online_clients ?? 0;
   const pendingClients = summary.data?.pending_clients ?? 0;
 
   // "Online" admins = active admins visible to the current role (API-enforced).
@@ -103,8 +103,8 @@ export function Sidebar() {
       href: '/clients',
       label: 'Clients',
       icon: MonitorSmartphone,
-      badge: runningClients,
-      badgeTitle: `${runningClients} running client(s)`,
+      badge: onlineClients,
+      badgeTitle: `${onlineClients} online client(s)`,
     },
     {
       href: '/pending-clients',

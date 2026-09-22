@@ -69,8 +69,13 @@ export function TaskDetailPanel({
       wait_time_2: Number(waitTime2),
       schedule: scheduleIso,
     };
-    if (Number.isNaN(body.wait_time) || Number.isNaN(body.wait_time_2)) {
-      setLocalError('Wait times must be numbers.');
+    if (
+      waitTime === '' ||
+      waitTime2 === '' ||
+      !Number.isInteger(body.wait_time) ||
+      !Number.isInteger(body.wait_time_2)
+    ) {
+      setLocalError('Wait times must be whole numbers (milliseconds).');
       return;
     }
 
@@ -93,7 +98,7 @@ export function TaskDetailPanel({
         <Meta label="Schedule" value={formatDateTime(task.schedule)} />
         <Meta label="Send time" value={formatDateTime(task.send_time)} />
         <Meta label="Response time" value={formatDateTime(task.response_time)} />
-        <Meta label="Wait times" value={<span className="font-mono">{task.wait_time} / {task.wait_time_2}</span>} />
+        <Meta label="Wait times (ms)" value={<span className="font-mono">{task.wait_time} / {task.wait_time_2}</span>} />
         <Meta label="Pull IP" value={<span className="font-mono">{task.client_pull_ip ?? '—'}</span>} />
         <Meta label="Response IP" value={<span className="font-mono">{task.client_response_ip ?? '—'}</span>} />
       </dl>
@@ -117,20 +122,22 @@ export function TaskDetailPanel({
       {!disabled ? (
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div className="grid grid-cols-2 gap-3.5">
-            <Field label="Wait time (s)" htmlFor="td-wait">
+            <Field label="Wait time (ms)" htmlFor="td-wait">
               <Input
                 id="td-wait"
                 type="number"
                 min={0}
+                step={1}
                 value={waitTime}
                 onChange={(event) => setWaitTime(event.target.value)}
               />
             </Field>
-            <Field label="Wait time 2 (s)" htmlFor="td-wait2">
+            <Field label="Wait time 2 (ms)" htmlFor="td-wait2">
               <Input
                 id="td-wait2"
                 type="number"
                 min={0}
+                step={1}
                 value={waitTime2}
                 onChange={(event) => setWaitTime2(event.target.value)}
               />

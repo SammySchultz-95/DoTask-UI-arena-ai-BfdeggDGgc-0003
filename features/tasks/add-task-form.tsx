@@ -3,9 +3,15 @@
 /**
  * "Add task" form (`POST /admin/tasks`). Reused by the Clients page (right
  * panel, client_id prefilled) and the Client Tasks page (top bar).
+ *
+ * wait_time / wait_time_2 are integer MILLISECONDS. Their defaults come from
+ * the server config (`GET /admin/settings`). Selecting a task type shows its
+ * description under the task context.
  */
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { serverConfigApi } from '@/lib/api-client/endpoints';
 import { localInputToUtcIso } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/inputs';
@@ -26,16 +32,43 @@ export function AddTaskForm({
   const taskTypes = useTaskTypeOptions();
   const createTask = useCreateTask();
 
+  // Server config supplies the default wait times for new tasks.
+  const serverConfig = useQuery({
+    queryKey: ['server-config'],
+    queryFn: serverConfigApi.get,
+    staleTime: 60_000,
+  });
+
   const [clientIdValue, setClientIdValue] = useState(clientId);
   const [taskTypeId, setTaskTypeId] = useState('');
-  const [waitTime, setWaitTime] = useState('60');
-  const [waitTime2, setWaitTime2] = useState('60');
+  const [waitTime, setWaitTime] = useState('');
+  const [waitTime2, setWaitTime2] = useState('');
   const [taskContext, setTaskContext] = useState('');
   const [useSchedule, setUseSchedule] = useState(false);
   const [schedule, setSchedule] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Track whether the user touched the wait fields; otherwise prefill from
+  // the server config once it loads.
+  const waitTouched = useRef(false);
+  const wait2Touched = useRef(false);
+
   useEffect(() => setClientIdValue(clientId), [clientId]);
+
+  useEffect(() => {
+    const config = serverConfig.data;
+    if (!config) return;
+    if (!waitTouched.current) {
+      setWaitTime((current) => current || String(config.default_response_wait_time));
+    }
+    if (!wait2Touched.current) {
+      setWaitTime2((current) => current || String(config.default_response_wait_time_2));
+    }
+  }, [serverConfig.data]);
+
+  const selectedType = (taskTypes.data ?? []).find(
+    (type) => String(type.task_type_id) === taskTypeId,
+  );
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -52,8 +85,13 @@ export function AddTaskForm({
     }
     const waitTimeNumber = Number(waitTime);
     const waitTime2Number = Number(waitTime2);
-    if (Number.isNaN(waitTimeNumber) || Number.isNaN(waitTime2Number)) {
-      setLocalError('Wait times must be numbers.');
+    if (
+      waitTime === '' ||
+      waitTime2 === '' ||
+      !Number.isInteger(waitTimeNumber) ||
+      !Number.isInteger(waitTime2Number)
+    ) {
+      setLocalError('Wait times must be whole numbers (milliseconds).');
       return;
     }
     let scheduleIso: string | undefined;
@@ -86,7 +124,7 @@ export function AddTaskForm({
     );
   }
 
-  const gridCols = compact ? 'sm:grid-cols-3' : 'sm:grid-cols-2';
+  const gridCols = compact ? 'sm:grid-cols-4' : 'sm:grid-cols-2';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5">
@@ -113,22 +151,32 @@ export function AddTaskForm({
             onChange={(event) => setTaskTypeId(event.target.value)}
           />
         </Field>
-        <Field label="Wait time (s)" htmlFor="at-wait">
+        <Field label="Wait time (ms)" htmlFor="at-wait">
           <Input
             id="at-wait"
             type="number"
             min={0}
+            step={1}
             value={waitTime}
-            onChange={(event) => setWaitTime(event.target.value)}
+            placeholder={serverConfig.isLoading ? '…' : 'default'}
+            onChange={(event) => {
+              waitTouched.current = true;
+              setWaitTime(event.target.value);
+            }}
           />
         </Field>
-        <Field label="Wait time 2 (s)" htmlFor="at-wait2">
+        <Field label="Wait time 2 (ms)" htmlFor="at-wait2">
           <Input
             id="at-wait2"
             type="number"
             min={0}
+            step={1}
             value={waitTime2}
-            onChange={(event) => setWaitTime2(event.target.value)}
+            placeholder={serverConfig.isLoading ? '…' : 'default'}
+            onChange={(event) => {
+              wait2Touched.current = true;
+              setWaitTime2(event.target.value);
+            }}
           />
         </Field>
       </div>
@@ -142,6 +190,18 @@ export function AddTaskForm({
           placeholder="Optional context sent to the client…"
         />
       </Field>
+
+      {/* Description of the selected task type */}
+      {selectedType ? (
+        <div className="rounded-lg border border-neon-500/20 bg-neon-500/[0.05] px-3 py-2.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neon-300">
+            {selectedType.task_type_name ?? `Task type ${selectedType.task_type_id}`} — description
+          </p>
+          <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-fog-dim">
+            {selectedType.description || 'No description provided for this task type.'}
+          </p>
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap items-end gap-4">
         <Checkbox
