@@ -3162,6 +3162,950 @@
         ]
       }
     },
+    "/api/v1/admin/backup/task-types": {
+      "get": {
+        "tags": [
+          "Backup"
+        ],
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only superadmin can perform backup operations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Only superadmin can perform backup operations."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/backup/task-types/restore": {
+      "post": {
+        "tags": [
+          "Backup"
+        ],
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "overwrite",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "The file part (field name is not enforced; first uploaded file is used; max 100 MB).",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only superadmin can perform restore operations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Only superadmin can perform restore operations."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/backup/clients": {
+      "get": {
+        "tags": [
+          "Backup"
+        ],
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by client status: running | shutdown | suspended.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "client_name_contains",
+            "in": "query",
+            "description": "Case-insensitive partial match on client name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "online_status",
+            "in": "query",
+            "description": "Filter by online status: online | offline.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "creation_time_after",
+            "in": "query",
+            "description": "creation_time >= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "creation_time_before",
+            "in": "query",
+            "description": "creation_time <= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "last_check_in_after",
+            "in": "query",
+            "description": "last_check_in >= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "last_check_in_before",
+            "in": "query",
+            "description": "last_check_in <= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "has_checked_in",
+            "in": "query",
+            "description": "true/false.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "requests_count_min",
+            "in": "query",
+            "description": "requests_count >= value.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "requests_count_max",
+            "in": "query",
+            "description": "requests_count <= value.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "wait_time_min",
+            "in": "query",
+            "description": "wait_time >= value.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "wait_time_max",
+            "in": "query",
+            "description": "wait_time <= value.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only superadmin can perform backup operations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Only superadmin can perform backup operations."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/backup/tasks": {
+      "get": {
+        "tags": [
+          "Backup"
+        ],
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by task status: not_sent | sent | completed | scheduled.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "description": "Exact match on client_id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "task_type_id",
+            "in": "query",
+            "description": "Exact match on task_type_id.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "creator",
+            "in": "query",
+            "description": "Exact match on creator.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "has_response",
+            "in": "query",
+            "description": "true/false.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "context_contains",
+            "in": "query",
+            "description": "Partial match on task_context.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "creation_time_after",
+            "in": "query",
+            "description": "creation_time >= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "creation_time_before",
+            "in": "query",
+            "description": "creation_time <= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "send_time_after",
+            "in": "query",
+            "description": "send_time >= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "send_time_before",
+            "in": "query",
+            "description": "send_time <= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "response_time_after",
+            "in": "query",
+            "description": "response_time >= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "response_time_before",
+            "in": "query",
+            "description": "response_time <= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "has_schedule",
+            "in": "query",
+            "description": "true/false.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only superadmin can perform backup operations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Only superadmin can perform backup operations."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/backup/pending-clients": {
+      "get": {
+        "tags": [
+          "Backup"
+        ],
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "description": "Exact match on client_id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "client_id_contains",
+            "in": "query",
+            "description": "Partial match on client_id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first_request_time_after",
+            "in": "query",
+            "description": "first_request_time >= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "first_request_time_before",
+            "in": "query",
+            "description": "first_request_time <= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "last_request_time_after",
+            "in": "query",
+            "description": "last_request_time >= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "last_request_time_before",
+            "in": "query",
+            "description": "last_request_time <= (ISO-8601).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "requests_count_min",
+            "in": "query",
+            "description": "requests_count >= value.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "requests_count_max",
+            "in": "query",
+            "description": "requests_count <= value.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only superadmin can perform backup operations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Only superadmin can perform backup operations."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/backup/uploaded-files": {
+      "get": {
+        "tags": [
+          "Backup"
+        ],
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only superadmin can perform backup operations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Only superadmin can perform backup operations."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/backup/full": {
+      "get": {
+        "tags": [
+          "Backup"
+        ],
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only superadmin can perform backup operations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Only superadmin can perform backup operations."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/admin/clients": {
       "post": {
         "tags": [
@@ -4371,7 +5315,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StringDateTime<>f__AnonymousType2"
+                  "$ref": "#/components/schemas/StringDateTime<>f__AnonymousType3"
                 }
               }
             }
@@ -4537,6 +5481,22 @@
               }
             }
           },
+          "403": {
+            "description": "readonlyadmin cannot access audit logs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "readonlyadmin cannot access audit logs."
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "Unhandled server error (logged in audit log with actor=server).",
             "content": {
@@ -4552,9 +5512,191 @@
                 }
               }
             }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/logs/backup": {
+      "get": {
+        "tags": [
+          "Log"
+        ],
+        "parameters": [
+          {
+            "name": "log_id",
+            "in": "query",
+            "description": "Exact match on log_id.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "log_id_min",
+            "in": "query",
+            "description": "log_id >= value.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "log_id_max",
+            "in": "query",
+            "description": "log_id <= value.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "description": "Exact match: admin username, client_name, client_id, or 'server'.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actor_contains",
+            "in": "query",
+            "description": "Case-insensitive partial match on actor.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actor_ip",
+            "in": "query",
+            "description": "Filter by the IP address of the actor. Supports exact IP or CIDR notation.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "description": "Exact match: info | warning | error.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "context",
+            "in": "query",
+            "description": "Case-insensitive partial (LIKE %v%) match on the event text. Aliases: q, context_contains.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeAfter",
+            "in": "query",
+            "description": "time >= (ISO-8601). Aliases: time_after, after.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "timeBefore",
+            "in": "query",
+            "description": "time <= (ISO-8601). Aliases: time_before, before.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "time (default) | log_id | actor | actor_ip | level.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortDir",
+            "in": "query",
+            "description": "asc | desc (default desc).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden"
+            "description": "readonlyadmin cannot access audit logs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "readonlyadmin cannot access audit logs."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6770,14 +7912,6 @@
             }
           },
           {
-            "name": "has_description",
-            "in": "query",
-            "description": "true/false — filter task types that have (or have not) a description.",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
             "name": "page",
             "in": "query",
             "description": "1-based page index (default 1).",
@@ -7727,7 +8861,7 @@
         },
         "additionalProperties": false
       },
-      "StringDateTime<>f__AnonymousType2": {
+      "StringDateTime<>f__AnonymousType3": {
         "type": "object",
         "properties": {
           "status": {
@@ -8024,6 +9158,9 @@
     },
     {
       "name": "AdminFile"
+    },
+    {
+      "name": "Backup"
     },
     {
       "name": "Client"
