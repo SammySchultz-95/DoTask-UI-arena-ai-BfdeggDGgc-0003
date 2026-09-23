@@ -23,6 +23,7 @@ import { SortControl, type SortState } from '@/components/filter-bar/sort-contro
 import { StatusBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { CopyIconButton } from '@/components/ui/copy-button';
 import { Modal } from '@/components/ui/modal';
 import { Field, Input } from '@/components/ui/inputs';
 
@@ -250,7 +251,9 @@ export function DownloadsPage() {
                 setPageSize(size);
               }}
               onRowClick={(row) => {
-                setSelectedFileId(row.file_id ?? null);
+                // Clicking the already-selected row collapses its links again.
+                const fileId = row.file_id ?? null;
+                setSelectedFileId((current) => (current === fileId ? null : fileId));
                 setSelectedLink(null);
               }}
               isSelected={(row) => row.file_id === selectedFileId}
@@ -470,7 +473,7 @@ function FileLinksSubTable({
               <th className="px-2 py-1">Created by</th>
               <th className="px-2 py-1">Created</th>
               <th className="px-2 py-1">Expires</th>
-              {writable ? <th className="px-2 py-1 text-right">Actions</th> : null}
+              <th className="px-2 py-1 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -490,22 +493,27 @@ function FileLinksSubTable({
                 <td className="px-2 py-1.5">{link.created_by ?? '—'}</td>
                 <td className="px-2 py-1.5 whitespace-nowrap text-fog-dim">{formatDateTime(link.created_time)}</td>
                 <td className="px-2 py-1.5 whitespace-nowrap text-fog-dim">{formatDateTime(link.expires_time)}</td>
-                {writable ? (
-                  <td
-                    className="px-2 py-1.5 text-right"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="xs"
-                      title="Delete link"
-                      className="hover:bg-red-500/10 hover:text-red-300"
-                      onClick={() => setDeleteTarget(link)}
-                    >
-                      <Trash2 size={12} />
-                    </Button>
-                  </td>
-                ) : null}
+                <td
+                  className="px-2 py-1.5 text-right"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="flex items-center justify-end gap-1">
+                    {link.download_url ? (
+                      <CopyIconButton text={link.download_url} title="Copy download URL" />
+                    ) : null}
+                    {writable ? (
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        title="Delete link"
+                        className="hover:bg-red-500/10 hover:text-red-300"
+                        onClick={() => setDeleteTarget(link)}
+                      >
+                        <Trash2 size={12} />
+                      </Button>
+                    ) : null}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

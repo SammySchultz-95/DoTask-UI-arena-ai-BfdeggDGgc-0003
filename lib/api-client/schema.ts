@@ -2712,6 +2712,709 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/backup/task-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    password?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Only superadmin can perform backup operations. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Only superadmin can perform backup operations."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/backup/task-types/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    password?: string;
+                    overwrite?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description The file part (field name is not enforced; first uploaded file is used; max 100 MB).
+                         */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Only superadmin can perform restore operations. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Only superadmin can perform restore operations."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/backup/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    password?: string;
+                    /** @description Filter by client status: running | shutdown | suspended. */
+                    status?: string;
+                    /** @description Case-insensitive partial match on client name. */
+                    client_name_contains?: string;
+                    /** @description Filter by online status: online | offline. */
+                    online_status?: string;
+                    /** @description creation_time >= (ISO-8601). */
+                    creation_time_after?: string;
+                    /** @description creation_time <= (ISO-8601). */
+                    creation_time_before?: string;
+                    /** @description last_check_in >= (ISO-8601). */
+                    last_check_in_after?: string;
+                    /** @description last_check_in <= (ISO-8601). */
+                    last_check_in_before?: string;
+                    /** @description true/false. */
+                    has_checked_in?: boolean;
+                    /** @description requests_count >= value. */
+                    requests_count_min?: number;
+                    /** @description requests_count <= value. */
+                    requests_count_max?: number;
+                    /** @description wait_time >= value. */
+                    wait_time_min?: number;
+                    /** @description wait_time <= value. */
+                    wait_time_max?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Only superadmin can perform backup operations. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Only superadmin can perform backup operations."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/backup/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    password?: string;
+                    /** @description Filter by task status: not_sent | sent | completed | scheduled. */
+                    status?: string;
+                    /** @description Exact match on client_id. */
+                    client_id?: string;
+                    /** @description Exact match on task_type_id. */
+                    task_type_id?: number;
+                    /** @description Exact match on creator. */
+                    creator?: string;
+                    /** @description true/false. */
+                    has_response?: boolean;
+                    /** @description Partial match on task_context. */
+                    context_contains?: string;
+                    /** @description creation_time >= (ISO-8601). */
+                    creation_time_after?: string;
+                    /** @description creation_time <= (ISO-8601). */
+                    creation_time_before?: string;
+                    /** @description send_time >= (ISO-8601). */
+                    send_time_after?: string;
+                    /** @description send_time <= (ISO-8601). */
+                    send_time_before?: string;
+                    /** @description response_time >= (ISO-8601). */
+                    response_time_after?: string;
+                    /** @description response_time <= (ISO-8601). */
+                    response_time_before?: string;
+                    /** @description true/false. */
+                    has_schedule?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Only superadmin can perform backup operations. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Only superadmin can perform backup operations."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/backup/pending-clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    password?: string;
+                    /** @description Exact match on client_id. */
+                    client_id?: string;
+                    /** @description Partial match on client_id. */
+                    client_id_contains?: string;
+                    /** @description first_request_time >= (ISO-8601). */
+                    first_request_time_after?: string;
+                    /** @description first_request_time <= (ISO-8601). */
+                    first_request_time_before?: string;
+                    /** @description last_request_time >= (ISO-8601). */
+                    last_request_time_after?: string;
+                    /** @description last_request_time <= (ISO-8601). */
+                    last_request_time_before?: string;
+                    /** @description requests_count >= value. */
+                    requests_count_min?: number;
+                    /** @description requests_count <= value. */
+                    requests_count_max?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Only superadmin can perform backup operations. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Only superadmin can perform backup operations."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/backup/uploaded-files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    password?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Only superadmin can perform backup operations. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Only superadmin can perform backup operations."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/backup/full": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    password?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Only superadmin can perform backup operations. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Only superadmin can perform backup operations."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/clients": {
         parameters: {
             query?: never;
@@ -3767,7 +4470,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["StringDateTime<>f__AnonymousType2"];
+                        "application/json": components["schemas"]["StringDateTime<>f__AnonymousType3"];
                     };
                 };
             };
@@ -3853,12 +4556,135 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
+                /** @description readonlyadmin cannot access audit logs. */
                 403: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "readonlyadmin cannot access audit logs."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/logs/backup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Exact match on log_id. */
+                    log_id?: number;
+                    /** @description log_id >= value. */
+                    log_id_min?: number;
+                    /** @description log_id <= value. */
+                    log_id_max?: number;
+                    /** @description Exact match: admin username, client_name, client_id, or 'server'. */
+                    actor?: string;
+                    /** @description Case-insensitive partial match on actor. */
+                    actor_contains?: string;
+                    /** @description Filter by the IP address of the actor. Supports exact IP or CIDR notation. */
+                    actor_ip?: string;
+                    /** @description Exact match: info | warning | error. */
+                    level?: string;
+                    /** @description Case-insensitive partial (LIKE %v%) match on the event text. Aliases: q, context_contains. */
+                    context?: string;
+                    /** @description time >= (ISO-8601). Aliases: time_after, after. */
+                    timeAfter?: string;
+                    /** @description time <= (ISO-8601). Aliases: time_before, before. */
+                    timeBefore?: string;
+                    /** @description time (default) | log_id | actor | actor_ip | level. */
+                    sortBy?: string;
+                    /** @description asc | desc (default desc). */
+                    sortDir?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description readonlyadmin cannot access audit logs. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "readonlyadmin cannot access audit logs."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
                 };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
@@ -5671,8 +6497,6 @@ export interface paths {
                     task_type_name_contains?: string;
                     /** @description Case-insensitive partial match on description. */
                     description_contains?: string;
-                    /** @description true/false — filter task types that have (or have not) a description. */
-                    has_description?: boolean;
                     /** @description 1-based page index (default 1). */
                     page?: number;
                     /** @description Items per page (default 50). */
@@ -6094,7 +6918,7 @@ export interface components {
             /** Format: int32 */
             default_response_wait_time_2?: number;
         };
-        "StringDateTime<>f__AnonymousType2": {
+        "StringDateTime<>f__AnonymousType3": {
             status?: string | null;
             /** Format: date-time */
             time?: string;

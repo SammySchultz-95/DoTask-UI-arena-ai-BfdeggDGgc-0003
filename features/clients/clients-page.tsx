@@ -2,10 +2,13 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ListTodo, MonitorSmartphone, Trash2 } from 'lucide-react';
-import type { ClientResponse, ClientsQueryParams } from '@/lib/api-client/endpoints';
+import { Database, ListTodo, MonitorSmartphone, Trash2 } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { backupApi, type ClientResponse, type ClientsQueryParams } from '@/lib/api-client/endpoints';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canWrite } from '@/lib/auth/roles';
+import { canManage, canWrite } from '@/lib/auth/roles';
+import { BackupDialog } from '@/components/backup/backup-dialog';
+import { errorMessage, useToast } from '@/components/ui/toast';
 import { formatDateTime, truncate } from '@/lib/format';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table/data-table';
@@ -89,6 +92,30 @@ export function ClientsPage() {
   const router = useRouter();
   const { role } = useAuth();
   const writable = canWrite(role);
+  const isSuperadmin = canManage(role);
+  const toast = useToast();
+  const [showBackup, setShowBackup] = useState(false);
+
+  const backupMutation = useMutation({
+    mutationFn: (params: { password: string } & Record<string, string | undefined>) =>
+      backupApi.clients(params),
+    onSuccess: () => {
+      toast.success('Clients backup downloaded.');
+      setShowBackup(false);
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not get the backup.')),
+  });
+
+  const BACKUP_FILTER_FIELDS: FilterField[] = [
+    { kind: 'select', name: 'status', label: 'Status', options: CLIENT_STATUS_OPTIONS },
+    { kind: 'text', name: 'client_name_contains', label: 'Name contains' },
+    { kind: 'select', name: 'online_status', label: 'Online status', options: ONLINE_STATUS_OPTIONS },
+    { kind: 'dateRange', label: 'Created', after: 'creation_time_after', before: 'creation_time_before' },
+    { kind: 'dateRange', label: 'Last check-in', after: 'last_check_in_after', before: 'last_check_in_before' },
+    { kind: 'boolean', name: 'has_checked_in', label: 'Has checked in' },
+    { kind: 'numberRange', label: 'Requests count', min: 'requests_count_min', max: 'requests_count_max' },
+    { kind: 'numberRange', label: 'Wait time (ms)', min: 'wait_time_min', max: 'wait_time_max' },
+  ];
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -178,6 +205,12 @@ export function ClientsPage() {
             setSort(next);
           }}
         />
+        {isSuperadmin ? (
+          <Button variant="secondary" size="sm" onClick={() => setShowBackup(true)}>
+            <Database size={14} />
+            Backup
+          </Button>
+        ) : null}
       </PageHeader>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
@@ -275,7 +308,11 @@ export function ClientsPage() {
                 <h2 className="text-sm font-semibold text-fog">Add task</h2>
               </div>
               {selected ? (
-                <AddTaskForm clientId={selected.client_id ?? ''} />
+                <AddTaskForm
+                  clientId={selected.client_id ?? ''}
+                  defaultWaitTime={selected.wait_time}
+                  defaultWaitTime2={selected.wait_time_2}
+                />
               ) : (
                 <p className="py-8 text-center text-xs text-fog-faint">
                   Select a client to add a task for it.
@@ -285,6 +322,16 @@ export function ClientsPage() {
           ) : null}
         </div>
       </div>
+
+      <BackupDialog
+        open={showBackup}
+        title="Backup clients"
+        description="Downloads a file with the selected clients from the server. Only superadmins can get backups."
+        filterFields={BACKUP_FILTER_FIELDS}
+        downloading={backupMutation.isPending}
+        onClose={() => setShowBackup(false)}
+        onDownload={(params) => backupMutation.mutate(params)}
+      />
 
       <ConfirmDialog
         open={deleteTarget !== null}

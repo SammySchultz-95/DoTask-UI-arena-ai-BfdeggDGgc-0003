@@ -204,7 +204,6 @@ export interface TaskTypesQueryParams extends PageParams {
   task_type_name?: string;
   task_type_name_contains?: string;
   description_contains?: string;
-  has_description?: boolean;
 }
 
 export const taskTypesApi = {
@@ -555,4 +554,158 @@ export const serverConfigApi = {
   get: () => apiFetch<ServerConfigResponse>('GET', '/api/v1/admin/settings'),
   patch: (body: PatchServerConfigRequest) =>
     apiFetch<ServerConfigResponse>('PATCH', '/api/v1/admin/settings', { body }),
+};
+
+/* ------------------------------------------------------------------ */
+/* Backups (superadmin only — binary downloads)                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Filter values arrive as strings from the backup dialogs (the shared
+ * `buildFilterParams` only produces strings); the query-string builder
+ * stringifies everything, so numbers/booleans are accepted as-is too.
+ */
+export interface BackupClientsParams {
+  password: string;
+  status?: string;
+  client_name_contains?: string;
+  online_status?: string;
+  creation_time_after?: string;
+  creation_time_before?: string;
+  last_check_in_after?: string;
+  last_check_in_before?: string;
+  has_checked_in?: string;
+  requests_count_min?: number | string;
+  requests_count_max?: number | string;
+  wait_time_min?: number | string;
+  wait_time_max?: number | string;
+}
+
+export interface BackupTasksParams {
+  password: string;
+  status?: string;
+  client_id?: string;
+  task_type_id?: number | string;
+  creator?: string;
+  has_response?: string;
+  context_contains?: string;
+  creation_time_after?: string;
+  creation_time_before?: string;
+  send_time_after?: string;
+  send_time_before?: string;
+  response_time_after?: string;
+  response_time_before?: string;
+  has_schedule?: string;
+}
+
+export interface BackupPendingClientsParams {
+  password: string;
+  client_id?: string;
+  client_id_contains?: string;
+  first_request_time_after?: string;
+  first_request_time_before?: string;
+  last_request_time_after?: string;
+  last_request_time_before?: string;
+  requests_count_min?: number | string;
+  requests_count_max?: number | string;
+}
+
+/**
+ * Shared download flow for every backup endpoint: build the query string,
+ * fetch the binary response with the admin token, then trigger a browser
+ * download. Filename is read from Content-Disposition when present.
+ */
+async function downloadBackupFile(
+  path: string,
+  params: object,
+  fallbackName: string,
+): Promise<void> {
+  const { getSessionToken } = await import('@/lib/auth/storage');
+  const { ApiError } = await import('./client');
+  const token = getSessionToken();
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === '') continue;
+    query.set(key, String(value));
+  }
+  const response = await fetch(
+    `${path}${query.toString() ? `?${query.toString()}` : ''}`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+  );
+  if (!response.ok) {
+    let message = `Backup failed with status ${response.status}.`;
+    try {
+      const payload = (await response.json()) as {
+        error?: { message?: string };
+      };
+      if (payload?.error?.message) message = payload.error.message;
+    } catch {
+      /* keep generic */
+    }
+    throw new ApiError(response.status, message);
+  }
+  const disposition = response.headers.get('content-disposition') ?? '';
+  const match =
+    /filename\*=(?:UTF-8'')?([^;]+)/i.exec(disposition) ??
+    /filename="?([^";]+)"?/i.exec(disposition);
+  const filename = match ? decodeURIComponent(match[1].trim()) : fallbackName;
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = objectUrl;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(objectUrl);
+}
+
+export const backupApi = {
+  clients: (params: BackupClientsParams) =>
+    downloadBackupFile('/api/v1/admin/backup/clients', params, 'dotask-clients-backup.json'),
+  tasks: (params: BackupTasksParams) =>
+    downloadBackupFile('/api/v1/admin/backup/tasks', params, 'dotask-tasks-backup.json'),
+  pendingClients: (params: BackupPendingClientsParams) =>
+    downloadBackupFile(
+      '/api/v1/admin/backup/pending-clients',
+      params,
+      'dotask-pending-clients-backup.json',
+    ),
+  uploadedFiles: (password: string) =>
+    downloadBackupFile(
+      '/api/v1/admin/backup/uploaded-files',
+      { password },
+      'dotask-uploaded-files-backup.json',
+    ),
+  full: (password: string) =>
+    downloadBackupFile('/api/v1/admin/backup/full', { password }, 'dotask-full-backup.json'),
+  taskTypes: (password: string) =>
+    downloadBackupFile(
+      '/api/v1/admin/backup/task-types',
+      { password },
+      'dotask-task-types-backup.json',
+    ),
+  /** multipart/form-data restore — field `file`, max 100 MB. */
+  restoreTaskTypes: async (file: File, password: string, overwrite: boolean): Promise<void> => {
+    const { getSessionToken } = await import('@/lib/auth/storage');
+    const { ApiError } = await import('./client');
+    const token = getSessionToken();
+    const formData = new FormData();
+    formData.set('file', file);
+    const query = new URLSearchParams({ password, overwrite: String(overwrite) });
+    const response = await fetch(
+      `/api/v1/admin/backup/task-types/restore?${query.toString()}`,
+      { method: 'POST', body: formData, headers: token ? { Authorization: `Bearer ${token}` } : {} },
+    );
+    if (!response.ok) {
+      let message = `Restore failed with status ${response.status}.`;
+      try {
+        const payload = (await response.json()) as { error?: { message?: string } };
+        if (payload?.error?.message) message = payload.error.message;
+      } catch {
+        /* keep generic */
+      }
+      throw new ApiError(response.status, message);
+    }
+  },
 };

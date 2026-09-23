@@ -8,13 +8,14 @@
  * error responses; the API rejects values that are not > 0.
  */
 import { useEffect, useState, type FormEvent } from 'react';
-import { Save, Settings2 } from 'lucide-react';
+import { Database, Save, Settings2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { serverConfigApi } from '@/lib/api-client/endpoints';
+import { backupApi, serverConfigApi } from '@/lib/api-client/endpoints';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManage } from '@/lib/auth/roles';
 import { useLiveQuery } from '@/lib/hooks/use-live-query';
 import { errorMessage, useToast } from '@/components/ui/toast';
+import { BackupDialog } from '@/components/backup/backup-dialog';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { ErrorBlock, LoadingBlock } from '@/components/ui/empty-state';
@@ -35,6 +36,16 @@ export function ServerConfigPage() {
   const [waitTime, setWaitTime] = useState('');
   const [waitTime2, setWaitTime2] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
+  const [showBackup, setShowBackup] = useState(false);
+
+  const backupMutation = useMutation({
+    mutationFn: (params: { password: string }) => backupApi.full(params.password),
+    onSuccess: () => {
+      toast.success('Full server backup downloaded.');
+      setShowBackup(false);
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not get the backup.')),
+  });
 
   // Sync the form whenever the (polled) config changes.
   useEffect(() => {
@@ -82,6 +93,22 @@ export function ServerConfigPage() {
         subtitle="Global server settings — default wait times for pulls."
         onReload={() => void query.refetch()}
         reloading={query.isFetching}
+      >
+        {manage ? (
+          <Button variant="secondary" size="sm" onClick={() => setShowBackup(true)}>
+            <Database size={14} />
+            Full backup
+          </Button>
+        ) : null}
+      </PageHeader>
+
+      <BackupDialog
+        open={showBackup}
+        title="Full server backup"
+        description="Downloads a backup of the entire server (all data). Only superadmins can get backups."
+        downloading={backupMutation.isPending}
+        onClose={() => setShowBackup(false)}
+        onDownload={(params) => backupMutation.mutate(params)}
       />
 
       {query.isError ? (

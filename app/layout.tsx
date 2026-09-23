@@ -3,8 +3,11 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'DoTask Admin',
+  title: 'DoTask Panel',
   description: 'Admin panel for the DoTask remote tasking server.',
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({

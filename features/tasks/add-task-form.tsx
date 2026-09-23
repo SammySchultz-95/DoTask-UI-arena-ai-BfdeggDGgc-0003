@@ -4,14 +4,16 @@
  * "Add task" form (`POST /admin/tasks`). Reused by the Clients page (right
  * panel, client_id prefilled) and the Client Tasks page (top bar).
  *
- * wait_time / wait_time_2 are integer MILLISECONDS. Their defaults come from
- * the server config (`GET /admin/settings`). Selecting a task type shows its
- * description under the task context.
+ * wait_time / wait_time_2 are integer MILLISECONDS. Defaults follow the
+ * target client's own wait times (via `defaultWaitTime`/`defaultWaitTime2`
+ * or a client lookup when the client field is editable), falling back to
+ * the server config defaults. Selecting a task type shows its description
+ * under the task context, which may be left empty.
  */
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { serverConfigApi } from '@/lib/api-client/endpoints';
+import { clientsApi, serverConfigApi } from '@/lib/api-client/endpoints';
 import { localInputToUtcIso } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/inputs';
@@ -22,22 +24,29 @@ export function AddTaskForm({
   clientIdLocked = true,
   onCreated,
   compact = false,
+  defaultWaitTime,
+  defaultWaitTime2,
 }: {
   clientId: string;
   /** When true the client is fixed (Clients page); otherwise editable. */
   clientIdLocked?: boolean;
   onCreated?: () => void;
   compact?: boolean;
+  /** The target client's wait times (ms) — preferred prefill source. */
+  defaultWaitTime?: number;
+  defaultWaitTime2?: number;
 }) {
   const taskTypes = useTaskTypeOptions();
   const createTask = useCreateTask();
 
-  // Server config supplies the default wait times for new tasks.
+  // Server config supplies the fallback default wait times for new tasks.
   const serverConfig = useQuery({
     queryKey: ['server-config'],
     queryFn: serverConfigApi.get,
     staleTime: 60_000,
   });
+
+
 
   const [clientIdValue, setClientIdValue] = useState(clientId);
   const [taskTypeId, setTaskTypeId] = useState('');
@@ -55,16 +64,31 @@ export function AddTaskForm({
 
   useEffect(() => setClientIdValue(clientId), [clientId]);
 
+  // When the client field is editable, look the client up so its own wait
+  // times can prefill the form.
+  const clientQuery = useQuery({
+    queryKey: ['client-for-task', clientIdValue.trim()],
+    queryFn: () => clientsApi.get(clientIdValue.trim()),
+    enabled: !clientIdLocked && clientIdValue.trim().length > 0,
+    staleTime: 30_000,
+    retry: false,
+  });
+
+  // Prefill wait times: target client's values first (props or lookup),
+  // then the server config defaults. Only while the fields are untouched.
   useEffect(() => {
     const config = serverConfig.data;
-    if (!config) return;
-    if (!waitTouched.current) {
-      setWaitTime((current) => current || String(config.default_response_wait_time));
-    }
-    if (!wait2Touched.current) {
-      setWaitTime2((current) => current || String(config.default_response_wait_time_2));
-    }
-  }, [serverConfig.data]);
+    const source1 =
+      defaultWaitTime ??
+      clientQuery.data?.wait_time ??
+      config?.default_response_wait_time;
+    const source2 =
+      defaultWaitTime2 ??
+      clientQuery.data?.wait_time_2 ??
+      config?.default_response_wait_time_2;
+    if (source1 !== undefined && !waitTouched.current) setWaitTime(String(source1));
+    if (source2 !== undefined && !wait2Touched.current) setWaitTime2(String(source2));
+  }, [defaultWaitTime, defaultWaitTime2, clientQuery.data, serverConfig.data]);
 
   const selectedType = (taskTypes.data ?? []).find(
     (type) => String(type.task_type_id) === taskTypeId,
@@ -107,7 +131,8 @@ export function AddTaskForm({
       {
         task_type_id: parsedTaskTypeId,
         client_id: clientIdValue.trim(),
-        task_context: taskContext || undefined,
+        // Task context may be left empty.
+        task_context: taskContext || null,
         wait_time: waitTimeNumber,
         wait_time_2: waitTime2Number,
         use_schedule: useSchedule,
@@ -181,15 +206,15 @@ export function AddTaskForm({
         </Field>
       </div>
 
-      <Field label="Task context" htmlFor="at-context">
-        <Textarea
-          id="at-context"
-          rows={compact ? 2 : 3}
-          value={taskContext}
-          onChange={(event) => setTaskContext(event.target.value)}
-          placeholder="Optional context sent to the client…"
-        />
-      </Field>
+          <Field label="Task context (optional)" htmlFor="at-context">
+            <Textarea
+              id="at-context"
+              rows={compact ? 2 : 3}
+              value={taskContext}
+              onChange={(event) => setTaskContext(event.target.value)}
+              placeholder="Sent to the client — may be left empty…"
+            />
+          </Field>
 
       {/* Description of the selected task type */}
       {selectedType ? (

@@ -2,17 +2,21 @@
 
 import { Suspense, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, ListTodo } from 'lucide-react';
-import type { TaskAdminResponse, TasksQueryParams } from '@/lib/api-client/endpoints';
+import { ChevronDown, ChevronUp, Database, ListTodo } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { backupApi, type TaskAdminResponse, type TasksQueryParams } from '@/lib/api-client/endpoints';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canWrite } from '@/lib/auth/roles';
+import { canManage, canWrite } from '@/lib/auth/roles';
 import { formatDateTime, truncate } from '@/lib/format';
+import { errorMessage, useToast } from '@/components/ui/toast';
+import { BackupDialog } from '@/components/backup/backup-dialog';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table/data-table';
 import { FilterBar, buildFilterParams, type FilterField, type FilterValues } from '@/components/filter-bar/filter-bar';
 import { SearchBox } from '@/components/filter-bar/search-box';
 import { SortControl, type SortState } from '@/components/filter-bar/sort-control';
 import { StatusBadge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useClientsQuery } from '@/features/clients/hooks';
 import { AddTaskForm } from './add-task-form';
 import { TaskDetailPanel } from './task-detail-panel';
@@ -95,6 +99,32 @@ function ClientTasksPageInner() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [formDirty, setFormDirty] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [showBackup, setShowBackup] = useState(false);
+  const isSuperadmin = canManage(role);
+  const toast = useToast();
+
+  const backupMutation = useMutation({
+    mutationFn: (params: { password: string } & Record<string, string | undefined>) =>
+      backupApi.tasks(params),
+    onSuccess: () => {
+      toast.success('Tasks backup downloaded.');
+      setShowBackup(false);
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not get the backup.')),
+  });
+
+  const BACKUP_FILTER_FIELDS: FilterField[] = [
+    { kind: 'select', name: 'status', label: 'Status', options: TASK_STATUS_OPTIONS },
+    { kind: 'text', name: 'client_id', label: 'Client ID (exact)' },
+    { kind: 'text', name: 'task_type_id', label: 'Task type ID' },
+    { kind: 'text', name: 'creator', label: 'Creator' },
+    { kind: 'boolean', name: 'has_response', label: 'Has response' },
+    { kind: 'text', name: 'context_contains', label: 'Context contains' },
+    { kind: 'dateRange', label: 'Created', after: 'creation_time_after', before: 'creation_time_before' },
+    { kind: 'dateRange', label: 'Send time', after: 'send_time_after', before: 'send_time_before' },
+    { kind: 'dateRange', label: 'Response time', after: 'response_time_after', before: 'response_time_before' },
+    { kind: 'boolean', name: 'has_schedule', label: 'Has schedule' },
+  ];
 
   // Client dropdown options (paginated list of registered clients).
   const clientsQuery = useClientsQuery({ page: 1, pageSize: 200, sortBy: 'client_name', sortDir: 'asc' });
@@ -226,6 +256,12 @@ function ClientTasksPageInner() {
             setSort(next);
           }}
         />
+        {isSuperadmin ? (
+          <Button variant="secondary" size="sm" onClick={() => setShowBackup(true)}>
+            <Database size={14} />
+            Backup
+          </Button>
+        ) : null}
       </PageHeader>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
@@ -320,6 +356,16 @@ function ClientTasksPageInner() {
           )}
         </section>
       </div>
+
+      <BackupDialog
+        open={showBackup}
+        title="Backup tasks"
+        description="Downloads a file with the selected tasks from the server. Only superadmins can get backups."
+        filterFields={BACKUP_FILTER_FIELDS}
+        downloading={backupMutation.isPending}
+        onClose={() => setShowBackup(false)}
+        onDownload={(params) => backupMutation.mutate(params)}
+      />
     </>
   );
 }

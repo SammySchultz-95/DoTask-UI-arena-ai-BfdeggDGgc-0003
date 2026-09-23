@@ -1,16 +1,19 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { CheckCircle2, XCircle } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { CheckCircle2, Database, XCircle } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
+  backupApi,
   serverConfigApi,
   type PendingClientResponse,
   type PendingClientsQueryParams,
 } from '@/lib/api-client/endpoints';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canWrite } from '@/lib/auth/roles';
+import { canManage, canWrite } from '@/lib/auth/roles';
 import { formatDateTime } from '@/lib/format';
+import { errorMessage, useToast } from '@/components/ui/toast';
+import { BackupDialog } from '@/components/backup/backup-dialog';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table/data-table';
 import { FilterBar, buildFilterParams, type FilterField, type FilterValues } from '@/components/filter-bar/filter-bar';
@@ -70,6 +73,37 @@ const ALL_FIELDS = [...FILTER_FIELDS, ...ADVANCED_FILTER_FIELDS];
 export function PendingClientsPage() {
   const { role } = useAuth();
   const writable = canWrite(role);
+  const isSuperadmin = canManage(role);
+  const toast = useToast();
+  const [showBackup, setShowBackup] = useState(false);
+
+  const backupMutation = useMutation({
+    mutationFn: (params: { password: string } & Record<string, string | undefined>) =>
+      backupApi.pendingClients(params),
+    onSuccess: () => {
+      toast.success('Pending clients backup downloaded.');
+      setShowBackup(false);
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not get the backup.')),
+  });
+
+  const BACKUP_FILTER_FIELDS: FilterField[] = [
+    { kind: 'text', name: 'client_id', label: 'Client ID (exact)' },
+    { kind: 'text', name: 'client_id_contains', label: 'Client ID contains' },
+    {
+      kind: 'dateRange',
+      label: 'First request',
+      after: 'first_request_time_after',
+      before: 'first_request_time_before',
+    },
+    {
+      kind: 'dateRange',
+      label: 'Last request',
+      after: 'last_request_time_after',
+      before: 'last_request_time_before',
+    },
+    { kind: 'numberRange', label: 'Requests count', min: 'requests_count_min', max: 'requests_count_max' },
+  ];
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -152,6 +186,12 @@ export function PendingClientsPage() {
             setSort(next);
           }}
         />
+        {isSuperadmin ? (
+          <Button variant="secondary" size="sm" onClick={() => setShowBackup(true)}>
+            <Database size={14} />
+            Backup
+          </Button>
+        ) : null}
       </PageHeader>
 
       <div className="space-y-4">
@@ -231,6 +271,16 @@ export function PendingClientsPage() {
           }}
         />
       ) : null}
+
+      <BackupDialog
+        open={showBackup}
+        title="Backup pending clients"
+        description="Downloads a file with the selected pending clients from the server. Only superadmins can get backups."
+        filterFields={BACKUP_FILTER_FIELDS}
+        downloading={backupMutation.isPending}
+        onClose={() => setShowBackup(false)}
+        onDownload={(params) => backupMutation.mutate(params)}
+      />
 
       <ConfirmDialog
         open={rejectTarget !== null}

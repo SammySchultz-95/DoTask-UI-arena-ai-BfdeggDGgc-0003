@@ -1,13 +1,15 @@
 'use client';
 
-import { useMemo, useState, type FormEvent } from 'react';
-import { Pencil, Plus, Save, Tags, Trash2 } from 'lucide-react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { Database, Pencil, Plus, RotateCcw, Save, Tags, Trash2, Upload } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  backupApi,
   taskTypesApi,
   type TaskTypeResponse,
   type TaskTypesQueryParams,
 } from '@/lib/api-client/endpoints';
+import { BackupDialog } from '@/components/backup/backup-dialog';
 import { useAuth } from '@/lib/auth/auth-context';
 import { canManage } from '@/lib/auth/roles';
 import { useLiveQuery } from '@/lib/hooks/use-live-query';
@@ -20,7 +22,7 @@ import { SortControl, type SortState } from '@/components/filter-bar/sort-contro
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Modal } from '@/components/ui/modal';
-import { Field, Input, Textarea } from '@/components/ui/inputs';
+import { Checkbox, Field, Input, Textarea } from '@/components/ui/inputs';
 import { truncate } from '@/lib/format';
 
 const SORT_OPTIONS = [
@@ -31,7 +33,6 @@ const SORT_OPTIONS = [
 const FILTER_FIELDS: FilterField[] = [
   { kind: 'text', name: 'task_type_name_contains', label: 'Name contains' },
   { kind: 'text', name: 'description_contains', label: 'Description contains' },
-  { kind: 'boolean', name: 'has_description', label: 'Has description' },
 ];
 
 const ADVANCED_FILTER_FIELDS: FilterField[] = [
@@ -56,6 +57,8 @@ export function TaskTypesPage() {
   const [formDirty, setFormDirty] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<TaskTypeResponse | null>(null);
+  const [showBackup, setShowBackup] = useState(false);
+  const [showRestore, setShowRestore] = useState(false);
 
   const queryParams = useMemo<TaskTypesQueryParams>(
     () => ({
@@ -90,6 +93,26 @@ export function TaskTypesPage() {
       invalidate();
     },
     onError: (error) => toast.error(errorMessage(error, 'Could not delete the task type.')),
+  });
+
+  const backupMutation = useMutation({
+    mutationFn: (params: { password: string }) => backupApi.taskTypes(params.password),
+    onSuccess: () => {
+      toast.success('Task types backup downloaded.');
+      setShowBackup(false);
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not get the backup.')),
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: (input: { file: File; password: string; overwrite: boolean }) =>
+      backupApi.restoreTaskTypes(input.file, input.password, input.overwrite),
+    onSuccess: () => {
+      toast.success('Task types restored from backup.');
+      setShowRestore(false);
+      invalidate();
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not restore the backup.')),
   });
 
   const columns = useMemo<Column<TaskTypeResponse>[]>(
@@ -141,10 +164,20 @@ export function TaskTypesPage() {
           }}
         />
         {manage ? (
-          <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
-            <Plus size={14} />
-            Create task type
-          </Button>
+          <>
+            <Button variant="secondary" size="sm" onClick={() => setShowBackup(true)}>
+              <Database size={14} />
+              Backup
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setShowRestore(true)}>
+              <RotateCcw size={14} />
+              Restore
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
+              <Plus size={14} />
+              Create task type
+            </Button>
+          </>
         ) : null}
       </PageHeader>
 
@@ -237,6 +270,25 @@ export function TaskTypesPage() {
             setShowCreate(false);
             invalidate();
           }}
+        />
+      ) : null}
+
+      <BackupDialog
+        open={showBackup}
+        title="Backup task types"
+        description="Downloads a file with all task types from the server. Only superadmins can get backups."
+        downloading={backupMutation.isPending}
+        onClose={() => setShowBackup(false)}
+        onDownload={(params) => backupMutation.mutate(params)}
+      />
+
+      {showRestore ? (
+        <RestoreTaskTypesModal
+          onClose={() => setShowRestore(false)}
+          loading={restoreMutation.isPending}
+          onRestore={(file, password, overwrite) =>
+            restoreMutation.mutate({ file, password, overwrite })
+          }
         />
       ) : null}
 
@@ -343,6 +395,86 @@ function EditTaskTypeForm({
         </div>
       )}
     </form>
+  );
+}
+
+function RestoreTaskTypesModal({
+  onClose,
+  loading,
+  onRestore,
+}: {
+  onClose: () => void;
+  loading: boolean;
+  onRestore: (file: File, password: string, overwrite: boolean) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [password, setPassword] = useState('');
+  const [overwrite, setOverwrite] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    setLocalError(null);
+    if (!file) {
+      setLocalError('Choose the backup file to restore.');
+      return;
+    }
+    if (!password) {
+      setLocalError('The backup password is required.');
+      return;
+    }
+    onRestore(file, password, overwrite);
+  }
+
+  return (
+    <Modal open title="Restore task types" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <p className="text-xs leading-relaxed text-fog-dim">
+          Upload a task-types backup file (max 100 MB). Restoring replaces the task types on the
+          server{overwrite ? ', overriding the existing ones' : ''}.
+        </p>
+        <Field label="Backup file" htmlFor="rtt-file">
+          <input
+            id="rtt-file"
+            ref={fileRef}
+            type="file"
+            className="block w-full cursor-pointer rounded-lg border border-ink-500 bg-ink-900 px-3 py-2 text-xs text-fog file:mr-3 file:rounded-md file:border-0 file:bg-neon-500/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-neon-300 hover:border-neon-500/50"
+            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+          />
+        </Field>
+        <Field label="Backup password" htmlFor="rtt-password">
+          <Input
+            id="rtt-password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </Field>
+        <Checkbox
+          label="Override existing task types"
+          checked={overwrite}
+          onChange={setOverwrite}
+        />
+        <p className="text-[11px] text-fog-faint">
+          Overwrites the current task types with the backup contents.
+        </p>
+        {localError ? (
+          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+            {localError}
+          </p>
+        ) : null}
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="primary" loading={loading}>
+            <Upload size={14} />
+            Restore
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 

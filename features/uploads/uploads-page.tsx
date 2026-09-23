@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useState, type FormEvent } from 'react';
-import { Copy, Download, Link2, Plus, TimerOff, Trash2 } from 'lucide-react';
+import { Copy, Database, Download, Link2, Plus, TimerOff, Trash2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  backupApi,
   uploadLinksApi,
   uploadedFilesApi,
   type UploadedFileResponse,
@@ -11,8 +12,10 @@ import {
   type UploadLinksQueryParams,
 } from '@/lib/api-client/endpoints';
 import { useAuth } from '@/lib/auth/auth-context';
-import { canWrite } from '@/lib/auth/roles';
+import { canManage, canWrite } from '@/lib/auth/roles';
 import { formatBytes, formatDateTime, localInputToUtcIso, truncate } from '@/lib/format';
+import { BackupDialog } from '@/components/backup/backup-dialog';
+import { CopyIconButton } from '@/components/ui/copy-button';
 import { useLiveQuery } from '@/lib/hooks/use-live-query';
 import { errorMessage, useToast } from '@/components/ui/toast';
 import { PageHeader } from '@/components/page-header';
@@ -23,7 +26,8 @@ import { StatusBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Modal } from '@/components/ui/modal';
-import { Field, Input } from '@/components/ui/inputs';
+import { Field, Input, Select } from '@/components/ui/inputs';
+import { useClientsQuery } from '@/features/clients/hooks';
 
 const SORT_OPTIONS = [
   { value: 'created_time', label: 'created_time' },
@@ -78,6 +82,17 @@ export function UploadsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [deleteFileTarget, setDeleteFileTarget] = useState<UploadedFileResponse | null>(null);
   const [deleteLinkTarget, setDeleteLinkTarget] = useState<UploadLinkResponse | null>(null);
+  const [showBackup, setShowBackup] = useState(false);
+  const isSuperadmin = canManage(role);
+
+  const backupMutation = useMutation({
+    mutationFn: (params: { password: string }) => backupApi.uploadedFiles(params.password),
+    onSuccess: () => {
+      toast.success('Uploaded files backup downloaded.');
+      setShowBackup(false);
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not get the backup.')),
+  });
 
   const queryParams = useMemo<UploadLinksQueryParams>(
     () => ({
@@ -175,6 +190,12 @@ export function UploadsPage() {
             setSort(next);
           }}
         />
+        {isSuperadmin ? (
+          <Button variant="secondary" size="sm" onClick={() => setShowBackup(true)}>
+            <Database size={14} />
+            Backup
+          </Button>
+        ) : null}
         {writable ? (
           <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
             <Plus size={14} />
@@ -224,21 +245,24 @@ export function UploadsPage() {
                     : 'Failed to load upload links.'
                   : 'No upload links yet.'
               }
-              actions={
-                writable
-                  ? (row) => (
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        title="Delete upload link"
-                        className="hover:bg-red-500/10 hover:text-red-300"
-                        onClick={() => setDeleteLinkTarget(row)}
-                      >
-                        <Trash2 size={13} />
-                      </Button>
-                    )
-                  : undefined
-              }
+              actions={(row) => (
+                <>
+                  {row.upload_url ? (
+                    <CopyIconButton text={row.upload_url} title="Copy upload URL" />
+                  ) : null}
+                  {writable ? (
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      title="Delete upload link"
+                      className="hover:bg-red-500/10 hover:text-red-300"
+                      onClick={() => setDeleteLinkTarget(row)}
+                    >
+                      <Trash2 size={13} />
+                    </Button>
+                  ) : null}
+                </>
+              )}
             />
           </div>
         </div>
@@ -321,6 +345,15 @@ export function UploadsPage() {
           }}
         />
       ) : null}
+
+      <BackupDialog
+        open={showBackup}
+        title="Backup uploaded files"
+        description="Downloads a file with the uploaded files from the server. Only superadmins can get backups."
+        downloading={backupMutation.isPending}
+        onClose={() => setShowBackup(false)}
+        onDownload={(params) => backupMutation.mutate(params)}
+      />
 
       <ConfirmDialog
         open={deleteFileTarget !== null}
@@ -476,6 +509,15 @@ function CreateUploadLinkModal({
   const [expiresTime, setExpiresTime] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Registered clients to pick from (first 200, sorted by name).
+  const clientsQuery = useClientsQuery({ page: 1, pageSize: 200, sortBy: 'client_name', sortDir: 'asc' });
+  const clientOptions = (clientsQuery.data?.items ?? []).map((client) => ({
+    value: client.client_id ?? '',
+    label: client.client_name
+      ? `${client.client_id} — ${client.client_name}`
+      : client.client_id ?? '',
+  }));
+
   const mutation = useMutation({
     mutationFn: uploadLinksApi.create,
     onSuccess: onCreated,
@@ -486,7 +528,7 @@ function CreateUploadLinkModal({
     event.preventDefault();
     setLocalError(null);
     if (!clientId.trim()) {
-      setLocalError('client_id is required for upload links.');
+      setLocalError('Pick the client that is allowed to upload.');
       return;
     }
     mutation.mutate({
@@ -498,13 +540,13 @@ function CreateUploadLinkModal({
   return (
     <Modal open title="Create upload link" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Field label="Client ID" htmlFor="ul-client" hint="Required — the client allowed to upload.">
-          <Input
+        <Field label="Client" htmlFor="ul-client" hint="Required — the client allowed to upload.">
+          <Select
             id="ul-client"
             value={clientId}
-            autoFocus
+            placeholder={clientsQuery.isLoading ? 'Loading clients…' : 'Select a client…'}
+            options={clientOptions}
             onChange={(event) => setClientId(event.target.value)}
-            className="font-mono"
           />
         </Field>
         <Field label="Expires (optional)" htmlFor="ul-expires">
