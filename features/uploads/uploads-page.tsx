@@ -19,6 +19,7 @@ import { CopyIconButton } from '@/components/ui/copy-button';
 import { useLiveQuery } from '@/lib/hooks/use-live-query';
 import { errorMessage, useToast } from '@/components/ui/toast';
 import { PageHeader } from '@/components/page-header';
+import { Split } from '@/components/split/split';
 import { DataTable, type Column } from '@/components/data-table/data-table';
 import { FilterBar, buildFilterParams, type FilterField, type FilterValues } from '@/components/filter-bar/filter-bar';
 import { SortControl, type SortState } from '@/components/filter-bar/sort-control';
@@ -204,7 +205,7 @@ export function UploadsPage() {
         ) : null}
       </PageHeader>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <Split storageKey="uploads" defaultRight={420}>
         <div className="space-y-4">
           <div className="panel p-4">
             <FilterBar
@@ -334,7 +335,7 @@ export function UploadsPage() {
             />
           ) : null}
         </div>
-      </div>
+      </Split>
 
       {showCreate ? (
         <CreateUploadLinkModal

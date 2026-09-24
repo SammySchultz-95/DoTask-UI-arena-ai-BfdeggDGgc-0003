@@ -5,7 +5,7 @@
  * Query-parameter interfaces mirror the documented parameters of each
  * endpoint exactly (plain query string — never a FilterQuery body).
  */
-import { apiFetch, type QueryParams } from './client';
+import { apiFetch, buildApiUrl, type QueryParams } from './client';
 import type { components } from './schema';
 
 export type Schemas = components['schemas'];
@@ -446,10 +446,10 @@ export const uploadedFilesApi = {
    */
   download: async (fileId: string): Promise<void> => {
     const { getSessionToken } = await import('@/lib/auth/storage');
-    const { ApiError } = await import('./client');
+    const { ApiError, buildApiUrl } = await import('./client');
     const token = getSessionToken();
     const response = await fetch(
-      `/api/v1/admin/files/uploadable/${encodeURIComponent(fileId)}/download`,
+      buildApiUrl(`/api/v1/admin/files/uploadable/${encodeURIComponent(fileId)}/download`),
       { headers: token ? { Authorization: `Bearer ${token}` } : {} },
     );
     if (!response.ok) {
@@ -628,10 +628,10 @@ async function downloadBackupFile(
     if (value === undefined || value === null || value === '') continue;
     query.set(key, String(value));
   }
-  const response = await fetch(
-    `${path}${query.toString() ? `?${query.toString()}` : ''}`,
-    { headers: token ? { Authorization: `Bearer ${token}` } : {} },
-  );
+  const qs = query.toString();
+  const response = await fetch(`${buildApiUrl(path)}${qs ? `?${qs}` : ''}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   if (!response.ok) {
     let message = `Backup failed with status ${response.status}.`;
     try {
@@ -660,6 +660,22 @@ async function downloadBackupFile(
   URL.revokeObjectURL(objectUrl);
 }
 
+export interface BackupLogsParams {
+  password: string;
+  log_id?: number | string;
+  log_id_min?: number | string;
+  log_id_max?: number | string;
+  actor?: string;
+  actor_contains?: string;
+  actor_ip?: string;
+  level?: string;
+  context?: string;
+  timeAfter?: string;
+  timeBefore?: string;
+  sortBy?: string;
+  sortDir?: string;
+}
+
 export const backupApi = {
   clients: (params: BackupClientsParams) =>
     downloadBackupFile('/api/v1/admin/backup/clients', params, 'dotask-clients-backup.json'),
@@ -685,6 +701,8 @@ export const backupApi = {
       { password },
       'dotask-task-types-backup.json',
     ),
+  logs: (params: BackupLogsParams) =>
+    downloadBackupFile('/api/v1/admin/backup/logs', params, 'dotask-logs-backup.json'),
   /** multipart/form-data restore — field `file`, max 100 MB. */
   restoreTaskTypes: async (file: File, password: string, overwrite: boolean): Promise<void> => {
     const { getSessionToken } = await import('@/lib/auth/storage');
@@ -693,10 +711,16 @@ export const backupApi = {
     const formData = new FormData();
     formData.set('file', file);
     const query = new URLSearchParams({ password, overwrite: String(overwrite) });
+    const restoreQuery = query.toString();
     const response = await fetch(
-      `/api/v1/admin/backup/task-types/restore?${query.toString()}`,
-      { method: 'POST', body: formData, headers: token ? { Authorization: `Bearer ${token}` } : {} },
-    );
+      `${buildApiUrl('/api/v1/admin/backup/task-types/restore')}${
+        restoreQuery ? `?${restoreQuery}` : ''
+      }`,
+      {
+      method: 'POST',
+      body: formData,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     if (!response.ok) {
       let message = `Restore failed with status ${response.status}.`;
       try {

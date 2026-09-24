@@ -15,6 +15,7 @@ import { canManage } from '@/lib/auth/roles';
 import { useLiveQuery } from '@/lib/hooks/use-live-query';
 import { errorMessage, useToast } from '@/components/ui/toast';
 import { PageHeader } from '@/components/page-header';
+import { Split } from '@/components/split/split';
 import { DataTable, type Column } from '@/components/data-table/data-table';
 import { FilterBar, buildFilterParams, type FilterField, type FilterValues } from '@/components/filter-bar/filter-bar';
 import { SearchBox } from '@/components/filter-bar/search-box';
@@ -181,7 +182,7 @@ export function TaskTypesPage() {
         ) : null}
       </PageHeader>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <Split storageKey="task-types" defaultRight={380}>
         <div className="space-y-4">
           <div className="panel p-4">
             <FilterBar
@@ -261,7 +262,7 @@ export function TaskTypesPage() {
             </p>
           )}
         </section>
-      </div>
+      </Split>
 
       {showCreate ? (
         <CreateTaskTypeModal

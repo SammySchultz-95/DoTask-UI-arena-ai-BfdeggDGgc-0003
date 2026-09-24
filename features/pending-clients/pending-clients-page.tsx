@@ -14,6 +14,8 @@ import { canManage, canWrite } from '@/lib/auth/roles';
 import { formatDateTime } from '@/lib/format';
 import { errorMessage, useToast } from '@/components/ui/toast';
 import { BackupDialog } from '@/components/backup/backup-dialog';
+import { Split } from '@/components/split/split';
+import { CopyableValue } from '@/components/ui/copyable-value';
 import { PageHeader } from '@/components/page-header';
 import { DataTable, type Column } from '@/components/data-table/data-table';
 import { FilterBar, buildFilterParams, type FilterField, type FilterValues } from '@/components/filter-bar/filter-bar';
@@ -112,6 +114,7 @@ export function PendingClientsPage() {
   const [search, setSearch] = useState('');
   const [confirmTarget, setConfirmTarget] = useState<PendingClientResponse | null>(null);
   const [rejectTarget, setRejectTarget] = useState<PendingClientResponse | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const confirmClient = useConfirmPendingClient();
   const rejectClient = useRejectPendingClient();
@@ -129,13 +132,19 @@ export function PendingClientsPage() {
 
   const query = usePendingClientsQuery(queryParams, { search });
   const pending = query.data?.items ?? [];
+  const selected = pending.find((row) => row.client_id === selectedId) ?? null;
 
   const columns = useMemo<Column<PendingClientResponse>[]>(
     () => [
       {
         key: 'client_id',
         header: 'Client ID',
-        render: (row) => <span className="font-mono text-xs text-neon-300">{row.client_id ?? '—'}</span>,
+        render: (row) =>
+          row.client_id ? (
+            <CopyableValue value={row.client_id} className="font-mono text-xs text-neon-300" />
+          ) : (
+            '—'
+          ),
       },
       {
         key: 'latest_ip',
@@ -194,6 +203,7 @@ export function PendingClientsPage() {
         ) : null}
       </PageHeader>
 
+      <Split storageKey="pending-clients" defaultRight={380}>
       <div className="space-y-4">
         <div className="panel p-4">
           <FilterBar
@@ -225,6 +235,8 @@ export function PendingClientsPage() {
               setPage(1);
               setPageSize(size);
             }}
+            onRowClick={(row) => setSelectedId(row.client_id ?? null)}
+            isSelected={(row) => row.client_id === selectedId}
             emptyMessage={
               query.isError
                 ? query.error instanceof Error
@@ -256,6 +268,19 @@ export function PendingClientsPage() {
           />
         </div>
       </div>
+
+      {/* Right: all info of the selected pending client */}
+      <section className="panel h-fit p-4">
+        <h2 className="mb-3 text-sm font-semibold text-fog">Pending client</h2>
+        {selected ? (
+          <PendingClientInfoPanel client={selected} />
+        ) : (
+          <p className="py-8 text-center text-xs text-fog-faint">
+            Select a pending client on the left to see its details.
+          </p>
+        )}
+      </section>
+      </Split>
 
       {confirmTarget ? (
         <ConfirmPendingClientModal
@@ -302,6 +327,60 @@ export function PendingClientsPage() {
         }}
       />
     </>
+  );
+}
+
+function PendingClientInfoPanel({ client }: { client: PendingClientResponse }) {
+  const ipStack = client.client_ip_stack ?? [];
+  return (
+    <div className="space-y-4">
+      <dl className="space-y-2.5 rounded-lg border border-ink-600 bg-ink-850/70 p-3 text-xs">
+        <InfoRow
+          label="Client ID"
+          value={<span className="font-mono text-neon-300">{client.client_id ?? '—'}</span>}
+        />
+        <InfoRow label="First request" value={formatDateTime(client.first_request_time)} />
+        <InfoRow label="Last request" value={formatDateTime(client.last_request_time)} />
+        <InfoRow
+          label="Requests count"
+          value={<span className="font-mono">{client.requests_count ?? 0}</span>}
+        />
+      </dl>
+
+      <div>
+        <p className="label-base">Client IP stack ({ipStack.length})</p>
+        {ipStack.length === 0 ? (
+          <p className="text-xs text-fog-faint">No IP recorded yet.</p>
+        ) : (
+          <ul className="max-h-48 space-y-1 overflow-y-auto">
+            {ipStack.map((ip, index) => (
+              <li
+                key={`${ip}-${index}`}
+                className="flex items-center justify-between rounded-md border border-ink-600 bg-ink-900 px-2.5 py-1.5"
+              >
+                <span className="font-mono text-xs">{ip}</span>
+                {index === 0 ? (
+                  <span className="rounded-full bg-neon-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-neon-300">
+                    latest
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-fog-faint">
+        {label}
+      </dt>
+      <dd className="min-w-0 break-all text-right">{value}</dd>
+    </div>
   );
 }
 

@@ -16,6 +16,7 @@ import { formatDateTime } from '@/lib/format';
 import { useLiveQuery } from '@/lib/hooks/use-live-query';
 import { errorMessage, useToast } from '@/components/ui/toast';
 import { PageHeader } from '@/components/page-header';
+import { Split } from '@/components/split/split';
 import { DataTable, type Column } from '@/components/data-table/data-table';
 import { FilterBar, buildFilterParams, type FilterField, type FilterValues } from '@/components/filter-bar/filter-bar';
 import { SearchBox } from '@/components/filter-bar/search-box';
@@ -208,7 +209,7 @@ export function AdminsPage() {
         ) : null}
       </PageHeader>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <Split storageKey="admins" defaultRight={380}>
         <div className="space-y-4">
           <div className="panel p-4">
             <FilterBar
@@ -299,7 +300,7 @@ export function AdminsPage() {
             </p>
           )}
         </section>
-      </div>
+      </Split>
 
       {showCreate ? (
         <CreateAdminModal

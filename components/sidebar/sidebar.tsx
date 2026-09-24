@@ -19,13 +19,12 @@ import {
   ShieldCheck,
   Tags,
   Upload,
-  UserRound,
 } from 'lucide-react';
 import { adminsApi, dashboardApi } from '@/lib/api-client/endpoints';
 import { useAuth } from '@/lib/auth/auth-context';
 import { isReadonly, ROLE_LABELS } from '@/lib/auth/roles';
 import { useLiveQuery } from '@/lib/hooks/use-live-query';
-import { ProfileModal } from '@/features/auth/profile-modal';
+import { SettingsModal } from '@/features/auth/settings-modal';
 
 interface NavItem {
   href: string;
@@ -38,6 +37,10 @@ interface NavItem {
 }
 
 const SIDEBAR_KEY = 'dotask.sidebar.collapsed';
+const SIDEBAR_WIDTH_KEY = 'dotask.sidebar.width';
+const SIDEBAR_MIN_WIDTH = 200;
+const SIDEBAR_MAX_WIDTH = 420;
+const SIDEBAR_DEFAULT_WIDTH = 240;
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -45,12 +48,17 @@ export function Sidebar() {
   const readonly = isReadonly(role);
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+  const [width, setWidth] = useState(SIDEBAR_DEFAULT_WIDTH);
+  const [showSettings, setShowSettings] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(SIDEBAR_KEY) === '1');
+    const stored = Number(window.localStorage.getItem(SIDEBAR_WIDTH_KEY));
+    if (Number.isFinite(stored) && stored >= SIDEBAR_MIN_WIDTH && stored <= SIDEBAR_MAX_WIDTH) {
+      setWidth(stored);
+    }
     setHydrated(true);
   }, []);
 
@@ -97,6 +105,35 @@ export function Sidebar() {
     });
   };
 
+  // Drag the right edge to resize the sidebar (persisted).
+  const startResize = (event: React.PointerEvent) => {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = width;
+    const onMove = (ev: PointerEvent) => {
+      const next = Math.min(
+        SIDEBAR_MAX_WIDTH,
+        Math.max(SIDEBAR_MIN_WIDTH, startWidth + (ev.clientX - startX)),
+      );
+      setWidth(next);
+    };
+    const onUp = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      const next = Math.min(
+        SIDEBAR_MAX_WIDTH,
+        Math.max(SIDEBAR_MIN_WIDTH, startWidth + (ev.clientX - startX)),
+      );
+      window.localStorage.setItem(SIDEBAR_WIDTH_KEY, String(next));
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
   const items: NavItem[] = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     {
@@ -129,12 +166,23 @@ export function Sidebar() {
     { href: '/logs', label: 'Logs', icon: ScrollText },
   ];
 
-  const width = !hydrated ? 'w-60' : collapsed ? 'w-[68px]' : 'w-60';
-
   return (
     <aside
-      className={`relative flex h-screen shrink-0 flex-col border-r border-ink-600 bg-ink-900/90 transition-[width] duration-200 ${width}`}
+      className="relative flex h-screen shrink-0 flex-col border-r border-ink-600 bg-ink-900/90"
+      style={{ width: collapsed ? 68 : hydrated ? width : SIDEBAR_DEFAULT_WIDTH }}
     >
+      {/* Resize handle (expanded mode only) */}
+      {!collapsed ? (
+        <div
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          title="Drag to resize"
+          className="absolute -right-1 top-0 z-20 h-full w-2 cursor-col-resize"
+        >
+          <div className="mx-auto h-full w-px bg-transparent transition hover:bg-neon-500/50" />
+        </div>
+      ) : null}
       {/* Wordmark + collapse toggle */}
       <div className="flex h-14 items-center justify-between border-b border-ink-600 px-3">
         <Link
@@ -174,13 +222,13 @@ export function Sidebar() {
                   collapsed ? 'justify-center px-0' : ''
                 } ${
                   active
-                    ? 'bg-neon-500/10 text-neon-300 shadow-[inset_0_0_0_1px_rgba(0,245,139,0.25)]'
+                    ? 'bg-neon-500/10 text-neon-300 shadow-[inset_0_0_0_1px_rgb(var(--neon-500)/0.25)]'
                     : 'text-fog-dim hover:bg-ink-750 hover:text-fog'
                 }`}
               >
                 <item.icon
                   size={17}
-                  className={active ? 'text-neon-400 drop-shadow-[0_0_6px_rgba(0,245,139,0.6)]' : ''}
+                  className={active ? 'text-neon-400 drop-shadow-[0_0_6px_rgb(var(--neon-500)/0.6)]' : ''}
                 />
                 {!collapsed && <span className="truncate">{item.label}</span>}
                 {!collapsed && item.badge !== undefined && item.badge > 0 ? (
@@ -216,12 +264,12 @@ export function Sidebar() {
             <button
               onClick={() => {
                 setMenuOpen(false);
-                setShowProfile(true);
+                setShowSettings(true);
               }}
               className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-xs font-medium text-fog transition hover:bg-neon-500/10 hover:text-neon-300"
             >
-              <UserRound size={14} />
-              Profile
+              <Settings2 size={14} />
+              Setting
             </button>
             <button
               onClick={() => {
@@ -262,7 +310,7 @@ export function Sidebar() {
         </button>
       </div>
 
-      <ProfileModal open={showProfile} onClose={() => setShowProfile(false)} />
+      <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
     </aside>
   );
 }

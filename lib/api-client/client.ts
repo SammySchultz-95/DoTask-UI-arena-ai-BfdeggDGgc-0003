@@ -54,6 +54,15 @@ function buildQueryString(params?: QueryParams): string {
 }
 
 /**
+ * Full request URL for an API path — honors NEXT_PUBLIC_API_URL (empty by
+ * default, i.e. same-origin). Every request, including binary downloads,
+ * must go through this so cross-origin deployments resolve consistently.
+ */
+export function buildApiUrl(path: string, params?: QueryParams): string {
+  return `${API_BASE}${path}${buildQueryString(params)}`;
+}
+
+/**
  * Perform an API request. Resolves with the parsed JSON body, or `undefined`
  * for 204/no-content responses. Rejects with `ApiError` on non-2xx.
  *
@@ -82,7 +91,7 @@ export async function apiFetch<T>(
   }
 
   const isLogin = path.endsWith('/auth/login');
-  const url = `${API_BASE}${path}${buildQueryString(params)}`;
+  const url = buildApiUrl(path, params);
 
   let response: Response;
   try {

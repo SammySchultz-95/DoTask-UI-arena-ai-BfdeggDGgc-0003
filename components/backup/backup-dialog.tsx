@@ -12,7 +12,7 @@ import { useState, type FormEvent } from 'react';
 import { Download, Lock } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
-import { Field, Input, Select } from '@/components/ui/inputs';
+import { Field, Input, Select, type SelectOption } from '@/components/ui/inputs';
 import type { FilterField } from '@/components/filter-bar/filter-bar';
 import { buildFilterParams } from '@/components/filter-bar/filter-bar';
 
@@ -111,6 +111,7 @@ export function BackupDialog({
   title,
   description,
   filterFields,
+  sortByOptions,
   downloading,
   onClose,
   onDownload,
@@ -120,6 +121,8 @@ export function BackupDialog({
   description?: string;
   /** Documented filter fields of the backup endpoint — omitted if it has none. */
   filterFields?: FilterField[];
+  /** Optional documented sort fields (logs backup has sortBy/sortDir). */
+  sortByOptions?: SelectOption[];
   downloading: boolean;
   onClose: () => void;
   /** Called with the password plus the built filter params (strings only). */
@@ -149,6 +152,12 @@ export function BackupDialog({
     onDownload({
       password,
       ...(filterFields ? buildFilterParams(filterFields, filters) : {}),
+      ...(sortByOptions
+        ? {
+            sortBy: filters['sortBy'] || 'time',
+            sortDir: filters['sortDir'] || 'desc',
+          }
+        : {}),
     });
   }
 
@@ -176,6 +185,31 @@ export function BackupDialog({
                 onChange={setFilter}
               />
             ))}
+          </div>
+        ) : null}
+
+        {sortByOptions ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Sort by" htmlFor="bk-sortby">
+              <Select
+                id="bk-sortby"
+                value={filters['sortBy'] ?? ''}
+                options={[{ value: '', label: '— default (time) —' }, ...sortByOptions]}
+                onChange={(event) => setFilter('sortBy', event.target.value)}
+              />
+            </Field>
+            <Field label="Direction" htmlFor="bk-sortdir">
+              <Select
+                id="bk-sortdir"
+                value={filters['sortDir'] ?? ''}
+                options={[
+                  { value: '', label: '— default (desc) —' },
+                  { value: 'desc', label: 'desc' },
+                  { value: 'asc', label: 'asc' },
+                ]}
+                onChange={(event) => setFilter('sortDir', event.target.value)}
+              />
+            </Field>
           </div>
         ) : null}
 

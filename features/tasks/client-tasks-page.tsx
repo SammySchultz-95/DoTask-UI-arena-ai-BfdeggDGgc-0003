@@ -11,12 +11,14 @@ import { formatDateTime, truncate } from '@/lib/format';
 import { errorMessage, useToast } from '@/components/ui/toast';
 import { BackupDialog } from '@/components/backup/backup-dialog';
 import { PageHeader } from '@/components/page-header';
+import { Split } from '@/components/split/split';
 import { DataTable, type Column } from '@/components/data-table/data-table';
 import { FilterBar, buildFilterParams, type FilterField, type FilterValues } from '@/components/filter-bar/filter-bar';
 import { SearchBox } from '@/components/filter-bar/search-box';
 import { SortControl, type SortState } from '@/components/filter-bar/sort-control';
 import { StatusBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { CopyableValue } from '@/components/ui/copyable-value';
 import { useClientsQuery } from '@/features/clients/hooks';
 import { AddTaskForm } from './add-task-form';
 import { TaskDetailPanel } from './task-detail-panel';
@@ -165,7 +167,15 @@ function ClientTasksPageInner() {
       {
         key: 'task_id',
         header: 'Task ID',
-        render: (row) => <span className="font-mono text-xs text-neon-300">{truncate(row.task_id, 18) || '—'}</span>,
+        render: (row) =>
+          row.task_id ? (
+            <CopyableValue
+              value={row.task_id}
+              className="font-mono text-xs text-neon-300"
+            />
+          ) : (
+            '—'
+          ),
       },
       {
         key: 'client_id',
@@ -264,7 +274,7 @@ function ClientTasksPageInner() {
         ) : null}
       </PageHeader>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <Split storageKey="client-tasks" defaultRight={420}>
         <div className="space-y-4">
           {/* Add task bar */}
           {writable ? (
@@ -355,7 +365,7 @@ function ClientTasksPageInner() {
             </p>
           )}
         </section>
-      </div>
+      </Split>
 
       <BackupDialog
         open={showBackup}

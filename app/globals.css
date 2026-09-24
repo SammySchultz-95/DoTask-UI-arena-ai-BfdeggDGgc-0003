@@ -2,9 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ====================================================================== */
+/* Theme tokens — RGB triplets consumed by tailwind.config.ts.             */
+/* Default (no [data-theme]) = original black + neon-green, untouched.     */
+/* ====================================================================== */
+
+:root,
+[data-theme='green'] {
   color-scheme: dark;
+  --ink-950: 5 8 7;
+  --ink-900: 8 13 10;
+  --ink-850: 10 16 13;
+  --ink-800: 12 19 16;
+  --ink-750: 15 23 19;
+  --ink-700: 18 28 23;
+  --ink-600: 23 36 29;
+  --ink-500: 30 46 37;
+  --ink-400: 39 57 46;
+  --neon-200: 184 255 221;
+  --neon-300: 124 255 196;
+  --neon-400: 61 255 166;
+  --neon-500: 0 245 139;
+  --neon-600: 0 207 117;
+  --neon-700: 0 164 93;
+  --neon-800: 6 122 72;
+  --neon-900: 7 84 55;
+  --fog: 230 242 234;
+  --fog-dim: 157 180 166;
+  --fog-faint: 110 132 119;
+  --sheen-top: rgba(255, 255, 255, 0.035);
+  --sheen-inset: 255 255 255 / 0.03;
+  --panel-shadow: rgba(0, 0, 0, 0.45);
+  --selection-bg: rgba(0, 245, 139, 0.28);
+  --selection-fg: #eafff3;
+  --body-glow-1: rgba(0, 245, 139, 0.07);
+  --body-glow-2: rgba(0, 245, 139, 0.05);
+  --dt-filter: invert(0.85) sepia(0.4) saturate(3) hue-rotate(90deg);
 }
+
+[data-theme='red'] {
+  color-scheme: dark;
+  --ink-950: 8 5 5;
+  --ink-900: 13 8 8;
+  --ink-850: 16 10 10;
+  --ink-800: 19 13 13;
+  --ink-750: 23 15 15;
+  --ink-700: 28 18 18;
+  --ink-600: 36 23 23;
+  --ink-500: 46 30 30;
+  --ink-400: 57 39 39;
+  --neon-200: 255 217 217;
+  --neon-300: 255 163 163;
+  --neon-400: 255 107 107;
+  --neon-500: 255 61 61;
+  --neon-600: 229 46 46;
+  --neon-700: 183 36 36;
+  --neon-800: 140 27 27;
+  --neon-900: 102 19 19;
+  --fog: 234 231 231;
+  --fog-dim: 178 169 169;
+  --fog-faint: 133 122 122;
+  --sheen-top: rgba(255, 255, 255, 0.035);
+  --sheen-inset: 255 255 255 / 0.03;
+  --panel-shadow: rgba(0, 0, 0, 0.45);
+  --selection-bg: rgba(255, 61, 61, 0.28);
+  --selection-fg: #ffecec;
+  --body-glow-1: rgba(255, 61, 61, 0.07);
+  --body-glow-2: rgba(255, 61, 61, 0.05);
+  --dt-filter: invert(0.9) sepia(0.4) saturate(4);
+}
+
+[data-theme='cyan'] {
+  color-scheme: dark;
+  --ink-950: 5 7 8;
+  --ink-900: 8 13 16;
+  --ink-850: 10 16 19;
+  --ink-800: 12 19 23;
+  --ink-750: 15 23 28;
+  --ink-700: 18 28 34;
+  --ink-600: 23 36 43;
+  --ink-500: 30 46 54;
+  --ink-400: 39 57 66;
+  --neon-200: 200 246 255;
+  --neon-300: 132 235 255;
+  --neon-400: 64 220 255;
+  --neon-500: 0 205 245;
+  --neon-600: 0 169 204;
+  --neon-700: 0 130 161;
+  --neon-800: 6 96 125;
+  --neon-900: 7 69 91;
+  --fog: 230 242 245;
+  --fog-dim: 157 180 190;
+  --fog-faint: 110 132 142;
+  --sheen-top: rgba(255, 255, 255, 0.035);
+  --sheen-inset: 255 255 255 / 0.03;
+  --panel-shadow: rgba(0, 0, 0, 0.45);
+  --selection-bg: rgba(0, 205, 245, 0.28);
+  --selection-fg: #e4f7fd;
+  --body-glow-1: rgba(0, 205, 245, 0.07);
+  --body-glow-2: rgba(0, 205, 245, 0.05);
+  --dt-filter: invert(0.85) sepia(0.5) saturate(3) hue-rotate(130deg);
+}
+
+[data-theme='silver'] {
+  color-scheme: dark;
+  --ink-950: 6 7 7;
+  --ink-900: 10 11 11;
+  --ink-850: 13 14 14;
+  --ink-800: 16 17 17;
+  --ink-750: 20 21 21;
+  --ink-700: 25 26 26;
+  --ink-600: 32 33 33;
+  --ink-500: 42 43 43;
+  --ink-400: 53 54 54;
+  --neon-200: 244 247 248;
+  --neon-300: 216 224 227;
+  --neon-400: 188 200 204;
+  --neon-500: 159 174 180;
+  --neon-600: 126 146 154;
+  --neon-700: 97 115 122;
+  --neon-800: 74 88 94;
+  --neon-900: 55 66 71;
+  --fog: 237 241 242;
+  --fog-dim: 166 176 180;
+  --fog-faint: 118 128 133;
+  --sheen-top: rgba(255, 255, 255, 0.04);
+  --sheen-inset: 255 255 255 / 0.04;
+  --panel-shadow: rgba(0, 0, 0, 0.5);
+  --selection-bg: rgba(159, 174, 180, 0.3);
+  --selection-fg: #f2f6f7;
+  --body-glow-1: rgba(159, 174, 180, 0.05);
+  --body-glow-2: rgba(159, 174, 180, 0.04);
+  --dt-filter: invert(0.85);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --ink-950: 241 244 242;
+  --ink-900: 255 255 255;
+  --ink-850: 248 250 249;
+  --ink-800: 244 247 245;
+  --ink-750: 236 241 238;
+  --ink-700: 226 233 229;
+  --ink-600: 211 221 215;
+  --ink-500: 191 202 195;
+  --ink-400: 166 180 172;
+  --neon-200: 217 247 231;
+  --neon-300: 14 138 85;
+  --neon-400: 8 145 88;
+  --neon-500: 0 164 93;
+  --neon-600: 0 138 79;
+  --neon-700: 0 112 64;
+  --neon-800: 6 92 55;
+  --neon-900: 7 74 46;
+  --fog: 16 32 26;
+  --fog-dim: 62 82 73;
+  --fog-faint: 100 117 108;
+  --sheen-top: rgba(0, 0, 0, 0.02);
+  --sheen-inset: 0 0 0 / 0.02;
+  --panel-shadow: rgba(15, 23, 20, 0.12);
+  --selection-bg: rgba(0, 164, 93, 0.25);
+  --selection-fg: #0b3d27;
+  --body-glow-1: rgba(0, 164, 93, 0.05);
+  --body-glow-2: rgba(0, 164, 93, 0.04);
+  --dt-filter: none;
+}
+
+/* ====================================================================== */
+/* Base styles                                                             */
+/* ====================================================================== */
 
 html,
 body {
@@ -14,39 +180,39 @@ body {
 body {
   @apply bg-ink-950 text-fog antialiased;
   background-image:
-    radial-gradient(1100px 500px at 85% -10%, rgba(0, 245, 139, 0.07), transparent 60%),
-    radial-gradient(900px 480px at -10% 110%, rgba(0, 245, 139, 0.05), transparent 55%);
+    radial-gradient(1100px 500px at 85% -10%, var(--body-glow-1), transparent 60%),
+    radial-gradient(900px 480px at -10% 110%, var(--body-glow-2), transparent 55%);
   background-attachment: fixed;
 }
 
 ::selection {
-  background: rgba(0, 245, 139, 0.28);
-  color: #eafff3;
+  background: var(--selection-bg);
+  color: var(--selection-fg);
 }
 
-/* Slim, dark scrollbars */
+/* Slim, theme-aware scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #1e2e25 transparent;
+  scrollbar-color: rgb(var(--ink-500)) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #1e2e25;
+  background: rgb(var(--ink-500));
   border-radius: 8px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: #27392e;
+  background: rgb(var(--ink-400));
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Consistent datetime picker indicator on dark inputs */
+/* Consistent datetime picker indicator */
 input[type='datetime-local']::-webkit-calendar-picker-indicator {
-  filter: invert(0.85) sepia(0.4) saturate(3) hue-rotate(90deg);
+  filter: var(--dt-filter);
   cursor: pointer;
 }
 

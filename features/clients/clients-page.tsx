@@ -11,6 +11,7 @@ import { BackupDialog } from '@/components/backup/backup-dialog';
 import { errorMessage, useToast } from '@/components/ui/toast';
 import { formatDateTime, truncate } from '@/lib/format';
 import { PageHeader } from '@/components/page-header';
+import { Split } from '@/components/split/split';
 import { DataTable, type Column } from '@/components/data-table/data-table';
 import { FilterBar, buildFilterParams, type FilterField, type FilterValues } from '@/components/filter-bar/filter-bar';
 import { SearchBox } from '@/components/filter-bar/search-box';
@@ -18,6 +19,7 @@ import { SortControl, type SortState } from '@/components/filter-bar/sort-contro
 import { StatusBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { CopyableValue } from '@/components/ui/copyable-value';
 import { AddTaskForm } from '@/features/tasks/add-task-form';
 import { ClientInfoPanel } from './client-info-panel';
 import { useClientsQuery, useDeleteClient } from './hooks';
@@ -148,7 +150,12 @@ export function ClientsPage() {
       {
         key: 'client_id',
         header: 'Client ID',
-        render: (row) => <span className="font-mono text-xs text-neon-300">{row.client_id ?? '—'}</span>,
+        render: (row) =>
+          row.client_id ? (
+            <CopyableValue value={row.client_id} className="font-mono text-xs text-neon-300" />
+          ) : (
+            '—'
+          ),
       },
       { key: 'client_name', header: 'Name', render: (row) => row.client_name ?? '—' },
       {
@@ -213,7 +220,7 @@ export function ClientsPage() {
         ) : null}
       </PageHeader>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
+      <Split storageKey="clients" defaultRight={400}>
         {/* Left: table + filters */}
         <div className="space-y-4">
           <div className="panel p-4">
@@ -321,7 +328,7 @@ export function ClientsPage() {
             </section>
           ) : null}
         </div>
-      </div>
+      </Split>
 
       <BackupDialog
         open={showBackup}

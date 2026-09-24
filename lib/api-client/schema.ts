@@ -3235,6 +3235,116 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/backup/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    password?: string;
+                    /** @description Exact match on log_id. */
+                    log_id?: number;
+                    /** @description log_id >= value. */
+                    log_id_min?: number;
+                    /** @description log_id <= value. */
+                    log_id_max?: number;
+                    /** @description Exact match: admin username, client_name, client_id, or 'server'. */
+                    actor?: string;
+                    /** @description Case-insensitive partial match on actor. */
+                    actor_contains?: string;
+                    /** @description Filter by the IP address of the actor. Supports exact IP or CIDR notation. */
+                    actor_ip?: string;
+                    /** @description Exact match: info | warning | error. */
+                    level?: string;
+                    /** @description Case-insensitive partial (LIKE %v%) match on the event text. Aliases: q, context_contains. */
+                    context?: string;
+                    /** @description time >= (ISO-8601). Aliases: time_after, after. */
+                    timeAfter?: string;
+                    /** @description time <= (ISO-8601). Aliases: time_before, before. */
+                    timeBefore?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
+                    };
+                };
+                /** @description Missing/invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "UNAUTHORIZED",
+                         *         "message": "Missing/invalid token."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Only superadmin can perform backup operations. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "FORBIDDEN_ROLE",
+                         *         "message": "Only superadmin can perform backup operations."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                /** @description Unhandled server error (logged in audit log with actor=server). */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": {
+                         *         "code": "INTERNAL_ERROR",
+                         *         "message": "Unhandled server error (logged in audit log with actor=server)."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/backup/uploaded-files": {
         parameters: {
             query?: never;

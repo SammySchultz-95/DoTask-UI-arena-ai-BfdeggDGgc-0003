@@ -1,17 +1,24 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ScrollText } from 'lucide-react';
-import type { LogEntryResponse, LogsQueryParams } from '@/lib/api-client/endpoints';
+import { Database, ScrollText } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { backupApi, type LogEntryResponse, type LogsQueryParams } from '@/lib/api-client/endpoints';
+import { useAuth } from '@/lib/auth/auth-context';
+import { canManage } from '@/lib/auth/roles';
 import { formatDateTime } from '@/lib/format';
 import { useLiveQuery } from '@/lib/hooks/use-live-query';
 import { logsApi } from '@/lib/api-client/endpoints';
+import { errorMessage, useToast } from '@/components/ui/toast';
+import { BackupDialog } from '@/components/backup/backup-dialog';
 import { PageHeader } from '@/components/page-header';
+import { Split } from '@/components/split/split';
 import { DataTable, type Column } from '@/components/data-table/data-table';
 import { FilterBar, buildFilterParams, type FilterField, type FilterValues } from '@/components/filter-bar/filter-bar';
 import { SearchBox } from '@/components/filter-bar/search-box';
 import { SortControl, type SortState } from '@/components/filter-bar/sort-control';
 import { StatusBadge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 const SORT_OPTIONS = [
   { value: 'time', label: 'time' },
@@ -40,7 +47,32 @@ const ADVANCED_FILTER_FIELDS: FilterField[] = [
 
 const ALL_FIELDS = [...FILTER_FIELDS, ...ADVANCED_FILTER_FIELDS];
 
+const LOG_LEVEL_OPTIONS = [
+  { value: 'info', label: 'info' },
+  { value: 'warning', label: 'warning' },
+  { value: 'error', label: 'error' },
+];
+
+/** All documented filter fields of GET /admin/backup/logs. */
+const BACKUP_FILTER_FIELDS: FilterField[] = [
+  { kind: 'numberRange', label: 'Log ID', exact: 'log_id', min: 'log_id_min', max: 'log_id_max' },
+  { kind: 'text', name: 'actor', label: 'Actor (exact)' },
+  { kind: 'text', name: 'actor_contains', label: 'Actor contains' },
+  {
+    kind: 'text',
+    name: 'actor_ip',
+    label: 'Actor IP',
+    placeholder: 'e.g. 192.168.1.5 or 10.0.0.0/24',
+  },
+  { kind: 'select', name: 'level', label: 'Level', options: LOG_LEVEL_OPTIONS },
+  { kind: 'text', name: 'context', label: 'Context contains' },
+  { kind: 'dateRange', label: 'Time', after: 'timeAfter', before: 'timeBefore' },
+];
+
 export function LogsPage() {
+  const { role } = useAuth();
+  const isSuperadmin = canManage(role);
+  const toast = useToast();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [sort, setSort] = useState<SortState>({ sortBy: 'time', sortDir: 'desc' });
@@ -48,6 +80,17 @@ export function LogsPage() {
   /** Search box maps to `context` — partial match, doubles as the search. */
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [showBackup, setShowBackup] = useState(false);
+
+  const backupMutation = useMutation({
+    mutationFn: (params: { password: string } & Record<string, string | undefined>) =>
+      backupApi.logs(params),
+    onSuccess: () => {
+      toast.success('Logs backup downloaded.');
+      setShowBackup(false);
+    },
+    onError: (error) => toast.error(errorMessage(error, 'Could not get the backup.')),
+  });
 
   const queryParams = useMemo<LogsQueryParams>(
     () => ({
@@ -123,9 +166,15 @@ export function LogsPage() {
             setSort(next);
           }}
         />
+        {isSuperadmin ? (
+          <Button variant="secondary" size="sm" onClick={() => setShowBackup(true)}>
+            <Database size={14} />
+            Backup
+          </Button>
+        ) : null}
       </PageHeader>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <Split storageKey="logs" defaultRight={380}>
         <div className="space-y-4">
           <div className="panel p-4">
             <FilterBar
@@ -212,7 +261,18 @@ export function LogsPage() {
             </p>
           )}
         </section>
-      </div>
+      </Split>
+
+      <BackupDialog
+        open={showBackup}
+        title="Backup logs"
+        description="Downloads a file with the selected audit log entries from the server. Only superadmins can get backups."
+        filterFields={BACKUP_FILTER_FIELDS}
+        sortByOptions={SORT_OPTIONS}
+        downloading={backupMutation.isPending}
+        onClose={() => setShowBackup(false)}
+        onDownload={(params) => backupMutation.mutate(params)}
+      />
     </>
   );
 }

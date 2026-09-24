@@ -26,7 +26,7 @@ function WelcomeBanner({ username }: { username: string | null }) {
         className="pointer-events-none absolute inset-0 opacity-[0.16]"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(0,245,139,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,139,0.5) 1px, transparent 1px)',
+            'linear-gradient(rgb(var(--neon-500)/0.5) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--neon-500)/0.5) 1px, transparent 1px)',
           backgroundSize: '28px 28px',
         }}
       />
@@ -40,7 +40,7 @@ function WelcomeBanner({ username }: { username: string | null }) {
         </span>
         <div className="min-w-0">
           <h2 className="truncate font-mono text-lg font-bold tracking-tight text-fog sm:text-xl">
-            <span className="text-neon-400 drop-shadow-[0_0_10px_rgba(0,245,139,0.65)]">
+            <span className="text-neon-400 drop-shadow-[0_0_10px_rgb(var(--neon-500)/0.65)]">
               Welcome Back
             </span>{' '}
             <span className="text-fog">{username ?? 'Admin'}</span>
