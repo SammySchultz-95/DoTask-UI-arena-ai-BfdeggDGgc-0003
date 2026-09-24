@@ -104,6 +104,22 @@ export function TaskDetailPanel({
       </dl>
 
       <div>
+        <p className="label-base">Task context</p>
+        {disabled ? (
+          <pre className="max-h-44 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-ink-600 bg-ink-900 p-3 font-mono text-xs leading-relaxed text-fog-dim">
+            {task.task_context || 'No context provided.'}
+          </pre>
+        ) : (
+          <Textarea
+            aria-label="Task context"
+            rows={3}
+            value={taskContext}
+            onChange={(event) => setTaskContext(event.target.value)}
+          />
+        )}
+      </div>
+
+      <div>
         <p className="label-base">Full response</p>
         <pre className="max-h-44 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-ink-600 bg-ink-900 p-3 font-mono text-xs leading-relaxed text-fog-dim">
           {task.response || 'No response recorded.'}
@@ -112,8 +128,8 @@ export function TaskDetailPanel({
 
       {frozenByStatus ? (
         <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-300">
-          This task is <span className="font-mono">{task.status}</span> — details can no longer be
-          changed. Status, times, IPs and the response are set by the server and never editable.
+          This task is <span className="font-mono">{task.status}</span> — every detail is now
+          read-only. Status, times, IPs and the response are set by the server and never editable.
         </p>
       ) : readonly ? (
         <p className="text-xs text-fog-faint">Read-only role — task details cannot be modified.</p>
@@ -149,14 +165,6 @@ export function TaskDetailPanel({
               type="datetime-local"
               value={schedule}
               onChange={(event) => setSchedule(event.target.value)}
-            />
-          </Field>
-          <Field label="Task context" htmlFor="td-context">
-            <Textarea
-              id="td-context"
-              rows={3}
-              value={taskContext}
-              onChange={(event) => setTaskContext(event.target.value)}
             />
           </Field>
 
