@@ -465,12 +465,7 @@ export const uploadedFilesApi = {
       throw new ApiError(response.status, message);
     }
     const disposition = response.headers.get('content-disposition') ?? '';
-    const match =
-      /filename\*=(?:UTF-8'')?([^;]+)/i.exec(disposition) ??
-      /filename="?([^";]+)"?/i.exec(disposition);
-    const filename = match
-      ? decodeURIComponent(match[1].trim())
-      : `file-${fileId}`;
+    const filename = filenameFromDisposition(disposition) ?? `file-${fileId}`;
     const blob = await response.blob();
     const objectUrl = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -611,13 +606,15 @@ export interface BackupPendingClientsParams {
 }
 
 /**
- * Extracts the file name the server sent in `Content-Disposition`.
- * Handles `filename*=UTF-8''name` (RFC 5987, preferred) and plain
- * `filename=name` / `filename="name"`. Returns null when the header
+ * Extracts the file name the server sent in `Content-Disposition` —
+ * whatever it is (any name, any extension: .zip, .csv, .json, …).
+ * Handles `filename*=charset'language'value` (RFC 5987, preferred, e.g.
+ * `filename*=UTF-8''full-backup-20260924-071115.zip`) and plain
+ * `filename=value` / `filename="value"`. Returns null when the header
  * carries no name.
  */
 function filenameFromDisposition(disposition: string): string | null {
-  const star = /filename\*\s*=\s*(?:UTF-8'')?([^;]+)/i.exec(disposition);
+  const star = /filename\*\s*=\s*(?:[^'\s]*'[^'\s]*')?([^;]+)/i.exec(disposition);
   if (star) {
     const raw = star[1].trim();
     try {
