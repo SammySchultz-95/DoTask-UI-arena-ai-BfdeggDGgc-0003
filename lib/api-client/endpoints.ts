@@ -446,12 +446,14 @@ export const uploadedFilesApi = {
    */
   download: async (fileId: string): Promise<void> => {
     const { getSessionToken } = await import('@/lib/auth/storage');
-    const { ApiError, buildApiUrl } = await import('./client');
+    const { ApiError } = await import('./client');
     const token = getSessionToken();
-    const response = await fetch(
-      buildApiUrl(`/api/v1/admin/files/uploadable/${encodeURIComponent(fileId)}/download`),
-      { headers: token ? { Authorization: `Bearer ${token}` } : {} },
-    );
+    // Same-origin proxy route so Content-Disposition is always readable by
+    // the page (see /api/download-proxy).
+    const target = `/api/v1/admin/files/uploadable/${encodeURIComponent(fileId)}/download`;
+    const response = await fetch(`/api/download-proxy?target=${encodeURIComponent(target)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     if (!response.ok) {
       let message = `Download failed with status ${response.status}.`;
       try {
@@ -630,8 +632,10 @@ function filenameFromDisposition(disposition: string): string | null {
 /**
  * Shared download flow for every backup endpoint: build the query string,
  * fetch the binary response with the admin token, then trigger a browser
- * download. The file is saved under the EXACT name from the response's
- * Content-Disposition header — nothing is hardcoded client-side.
+ * download. The download goes through the same-origin `/api/download-proxy`
+ * route so the server's Content-Disposition is always readable by the page
+ * (browsers hide it on cross-origin fetches). The file is saved under the
+ * EXACT name from that header — nothing is hardcoded client-side.
  */
 async function downloadBackupFile(path: string, params: object): Promise<void> {
   const { getSessionToken } = await import('@/lib/auth/storage');
@@ -643,9 +647,10 @@ async function downloadBackupFile(path: string, params: object): Promise<void> {
     query.set(key, String(value));
   }
   const qs = query.toString();
-  const response = await fetch(`${buildApiUrl(path)}${qs ? `?${qs}` : ''}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  const response = await fetch(
+    `/api/download-proxy?target=${encodeURIComponent(`${path}${qs ? `?${qs}` : ''}`)}`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+  );
   if (!response.ok) {
     let message = `Backup failed with status ${response.status}.`;
     try {
@@ -659,7 +664,16 @@ async function downloadBackupFile(path: string, params: object): Promise<void> {
     throw new ApiError(response.status, message);
   }
   const disposition = response.headers.get('content-disposition') ?? '';
-  const filename = filenameFromDisposition(disposition) ?? path.split('/').pop() ?? 'backup';
+  let filename = filenameFromDisposition(disposition);
+  if (!filename) {
+    // The API response carried no readable file name — fall back to a name
+    // derived from the endpoint and make it visible.
+    console.warn(
+      '[DoTask] The API response contained no Content-Disposition file name; ' +
+        'the file is saved under a name derived from the endpoint.',
+    );
+    filename = path.split('/').pop() ?? 'backup';
+  }
   const blob = await response.blob();
   const objectUrl = URL.createObjectURL(blob);
   const anchor = document.createElement('a');

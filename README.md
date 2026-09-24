@@ -38,6 +38,15 @@ Alternatively set `NEXT_PUBLIC_API_URL=https://api.example.com` to call the
 API cross-origin directly. Copy `.env.example` to `.env.local` to persist
 either setting.
 
+> **Downloads keep the exact server file name in both modes.** Browsers hide
+> `Content-Disposition` from page JavaScript on cross-origin responses
+> (CORS), so backup/file downloads go through the same-origin
+> `/api/download-proxy` route: the server fetches the API (no CORS there),
+> streams the bytes back with the original `Content-Disposition`, and the
+> browser saves the file under exactly the `filename` the API sent — e.g.
+> `full-backup-20260924-074251.zip`, never a derived/hardcoded name. The
+> token is forwarded via the `Authorization` header, never a URL.
+
 ### No backend at hand? Use the bundled dev backend
 
 `dev-backend/server.js` is a dependency-free, in-memory implementation of the
