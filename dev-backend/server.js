@@ -15,6 +15,7 @@
 
 const http = require('http');
 const crypto = require('crypto');
+const zlib = require('zlib');
 
 const PORT = Number(process.env.PORT || 8080);
 const now = () => new Date().toISOString();
@@ -279,17 +280,23 @@ const state = {
 /* ------------------------------------------------------------------ */
 
 function send(res, status, payload, headers = {}) {
-  const body =
-    payload === undefined
-      ? ''
-      : typeof payload === 'string'
-        ? payload
-        : JSON.stringify(payload);
+  let body;
+  let contentType;
+  if (payload === undefined) {
+    body = '';
+    contentType = headers['content-type'] ?? 'application/json';
+  } else if (Buffer.isBuffer(payload)) {
+    body = payload;
+    contentType = headers['content-type'] ?? 'application/octet-stream';
+  } else if (typeof payload === 'string') {
+    body = payload;
+    contentType = headers['content-type'] ?? 'text/plain';
+  } else {
+    body = JSON.stringify(payload);
+    contentType = headers['content-type'] ?? 'application/json';
+  }
   res.writeHead(status, {
-    'content-type':
-      typeof payload === 'string' && !headers['content-type']
-        ? 'text/plain'
-        : 'application/json',
+    'content-type': contentType,
     ...headers,
     ...(body ? { 'content-length': Buffer.byteLength(body) } : {}),
   });
@@ -375,6 +382,97 @@ function pageOf(res, items, query) {
 
 const asBool = (v) => (v === 'true' ? true : v === 'false' ? false : undefined);
 const num = (v) => (v === null || v === undefined || v === '' ? undefined : Number(v));
+
+/* ------------------------- minimal ZIP (de)flating ------------------------- */
+
+const CRC_TABLE = (() => {
+  const t = new Int32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c;
+  }
+  return t;
+})();
+function crc32(buf) {
+  let c = 0xffffffff;
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+/** entries: [{ name, data: Buffer }] — deflated entries, DOS timestamp 1980-01-01 */
+function zipBuild(entries) {
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+  for (const e of entries) {
+    const nameBuf = Buffer.from(e.name, 'utf8');
+    const data = zlib.deflateRawSync(e.data);
+    const crc = crc32(e.data);
+    const lh = Buffer.alloc(30);
+    lh.writeUInt32LE(0x04034b50, 0); // local file header signature
+    lh.writeUInt16LE(20, 4); // version needed
+    lh.writeUInt16LE(0x0800, 6); // flags: UTF-8 name
+    lh.writeUInt16LE(8, 8); // method: deflated
+    lh.writeUInt16LE(0, 10); // mod time
+    lh.writeUInt16LE(0x21, 12); // mod date
+    lh.writeUInt32LE(crc, 14);
+    lh.writeUInt32LE(data.length, 18);
+    lh.writeUInt32LE(e.data.length, 22);
+    lh.writeUInt16LE(nameBuf.length, 26);
+    lh.writeUInt16LE(0, 28); // extra len
+    localParts.push(lh, nameBuf, data);
+    const ch = Buffer.alloc(46);
+    ch.writeUInt32LE(0x02014b50, 0); // central directory signature
+    ch.writeUInt16LE(20, 4);
+    ch.writeUInt16LE(20, 6);
+    ch.writeUInt16LE(0x0800, 8);
+    ch.writeUInt16LE(8, 10);
+    ch.writeUInt16LE(0, 12);
+    ch.writeUInt16LE(0x21, 14);
+    ch.writeUInt32LE(crc, 16);
+    ch.writeUInt32LE(data.length, 20);
+    ch.writeUInt32LE(e.data.length, 24);
+    ch.writeUInt16LE(nameBuf.length, 28);
+    ch.writeUInt32LE(0, 38); // external attrs
+    ch.writeUInt32LE(offset, 42);
+    centralParts.push(ch, nameBuf);
+    offset += 30 + nameBuf.length + data.length;
+  }
+  const central = Buffer.concat(centralParts);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(entries.length, 8);
+  eocd.writeUInt16LE(entries.length, 10);
+  eocd.writeUInt32LE(central.length, 12);
+  eocd.writeUInt32LE(offset, 16);
+  return Buffer.concat([...localParts, central, eocd]);
+}
+
+/** Returns [{ name, data: Buffer }] for stored/deflated entries, or [] if not a zip. */
+function zipRead(buf) {
+  if (buf.length < 4 || buf.readUInt32LE(0) !== 0x04034b50) return [];
+  const entries = [];
+  let i = 0;
+  while (i + 30 <= buf.length && buf.readUInt32LE(i) === 0x04034b50) {
+    const method = buf.readUInt16LE(i + 8);
+    const compSize = buf.readUInt32LE(i + 18);
+    const nameLen = buf.readUInt16LE(i + 26);
+    const extraLen = buf.readUInt16LE(i + 28);
+    const name = buf.subarray(i + 30, i + 30 + nameLen).toString('utf8');
+    const start = i + 30 + nameLen + extraLen;
+    const raw = buf.subarray(start, start + compSize);
+    let data;
+    try {
+      data = method === 8 ? zlib.inflateRawSync(raw) : Buffer.from(raw);
+    } catch {
+      return [];
+    }
+    entries.push({ name, data });
+    i = start + compSize;
+  }
+  return entries;
+}
 
 function ipMatches(stack, filter) {
   if (!stack || !stack.length) return false;
@@ -1202,33 +1300,44 @@ const server = http.createServer(async (req, res) => {
       if (actor.role !== 'superadmin') {
         return fail(res, 403, 'FORBIDDEN_ROLE', 'Only superadmin can perform backup operations.');
       }
-      const dump = (scope, data, name) => {
-        log(actor.username, null, 'info', `Backup ${name} downloaded by ${actor.username} (password ${q.get('password') ? 'provided' : 'missing'}).`);
-        return send(res, 200, JSON.stringify(data, null, 2), {
-          'content-type': 'text/plain',
-          'content-disposition': `attachment; filename="dotask-${name}-backup.json"`,
+      // Mirrors the real API: a zip body with
+      // `content-disposition: attachment; filename=<scope>-backup-<YYYYMMDD-HHMMSS>.zip;
+      //  filename*=UTF-8''<same>` and `content-type: application/zip`.
+      // The panel saves whatever name this header carries — nothing is hardcoded client-side.
+      const stamp = (() => {
+        const d = new Date();
+        const p = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+      })();
+      const dump = (scope, data) => {
+        log(actor.username, null, 'info', `Backup ${scope} downloaded by ${actor.username} (password ${q.get('password') ? 'provided' : 'missing'}).`);
+        const fileName = `${scope}-backup-${stamp}.zip`;
+        const zip = zipBuild([{ name: `${scope}.json`, data: Buffer.from(JSON.stringify(data, null, 2), 'utf8') }]);
+        return send(res, 200, zip, {
+          'content-type': 'application/zip',
+          'content-disposition': `attachment; filename=${fileName}; filename*=UTF-8''${encodeURIComponent(fileName)}`,
         });
       };
       if (p === '/api/v1/admin/backup/clients' && method === 'GET') {
-        return dump('clients', filterClients(q), 'clients');
+        return dump('clients', filterClients(q));
       }
       if (p === '/api/v1/admin/backup/tasks' && method === 'GET') {
-        return dump('tasks', filterTasks(q).map(taskPublic), 'tasks');
+        return dump('tasks', filterTasks(q).map(taskPublic));
       }
       if (p === '/api/v1/admin/backup/pending-clients' && method === 'GET') {
-        return dump('pending-clients', filterPending(q), 'pending-clients');
+        return dump('pending-clients', filterPending(q));
       }
       if (p === '/api/v1/admin/backup/uploaded-files' && method === 'GET') {
-        return dump('uploaded-files', state.uploadFiles, 'uploaded-files');
+        return dump('uploaded-files', state.uploadFiles);
       }
       if (p === '/api/v1/admin/backup/task-types' && method === 'GET') {
-        return dump('task-types', state.taskTypes.map(taskTypePublic), 'task-types');
+        return dump('task-types', state.taskTypes.map(taskTypePublic));
       }
       if (p === '/api/v1/admin/backup/logs' && method === 'GET') {
-        return dump('logs', filterLogs(q), 'logs');
+        return dump('logs', filterLogs(q));
       }
       if (p === '/api/v1/admin/logs/backup' && method === 'GET') {
-        return dump('logs', filterLogs(q), 'logs');
+        return dump('logs', filterLogs(q));
       }
       if (p === '/api/v1/admin/backup/full' && method === 'GET') {
         return dump(
@@ -1246,18 +1355,25 @@ const server = http.createServer(async (req, res) => {
             logs: state.logs,
             settings: state.settings,
           },
-          'full',
         );
       }
       if (p === '/api/v1/admin/backup/task-types/restore' && method === 'POST') {
         const raw = await readBody(req);
         const { files } = parseMultipart(raw, req.headers['content-type'] ?? '');
         if (!files.length) return fail(res, 400, 'BAD_REQUEST', 'Missing file part.');
+        const fileData = files[0].data;
+        let jsonBuf = fileData;
+        // Backups are served as zip archives — accept that (or a raw JSON file).
+        const zipEntries = zipRead(fileData);
+        if (zipEntries.length) {
+          const entry = zipEntries.find((e) => e.name.endsWith('.json')) ?? zipEntries[0];
+          jsonBuf = entry.data;
+        }
         let parsed;
         try {
-          parsed = JSON.parse(files[0].data.toString());
+          parsed = JSON.parse(jsonBuf.toString());
         } catch {
-          return fail(res, 400, 'BAD_FILE', 'Backup file is not valid JSON.');
+          return fail(res, 400, 'BAD_FILE', 'Backup file is not a valid backup archive.');
         }
         const list = Array.isArray(parsed) ? parsed : parsed.task_types;
         if (!Array.isArray(list)) return fail(res, 400, 'BAD_FILE', 'Backup file must contain a task type array.');

@@ -611,15 +611,32 @@ export interface BackupPendingClientsParams {
 }
 
 /**
+ * Extracts the file name the server sent in `Content-Disposition`.
+ * Handles `filename*=UTF-8''name` (RFC 5987, preferred) and plain
+ * `filename=name` / `filename="name"`. Returns null when the header
+ * carries no name.
+ */
+function filenameFromDisposition(disposition: string): string | null {
+  const star = /filename\*\s*=\s*(?:UTF-8'')?([^;]+)/i.exec(disposition);
+  if (star) {
+    const raw = star[1].trim();
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  }
+  const plain = /filename\s*=\s*"?([^";]+)"?/i.exec(disposition);
+  return plain ? plain[1].trim() : null;
+}
+
+/**
  * Shared download flow for every backup endpoint: build the query string,
  * fetch the binary response with the admin token, then trigger a browser
- * download. Filename is read from Content-Disposition when present.
+ * download. The file is saved under the EXACT name from the response's
+ * Content-Disposition header — nothing is hardcoded client-side.
  */
-async function downloadBackupFile(
-  path: string,
-  params: object,
-  fallbackName: string,
-): Promise<void> {
+async function downloadBackupFile(path: string, params: object): Promise<void> {
   const { getSessionToken } = await import('@/lib/auth/storage');
   const { ApiError } = await import('./client');
   const token = getSessionToken();
@@ -645,10 +662,7 @@ async function downloadBackupFile(
     throw new ApiError(response.status, message);
   }
   const disposition = response.headers.get('content-disposition') ?? '';
-  const match =
-    /filename\*=(?:UTF-8'')?([^;]+)/i.exec(disposition) ??
-    /filename="?([^";]+)"?/i.exec(disposition);
-  const filename = match ? decodeURIComponent(match[1].trim()) : fallbackName;
+  const filename = filenameFromDisposition(disposition) ?? path.split('/').pop() ?? 'backup';
   const blob = await response.blob();
   const objectUrl = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -678,31 +692,17 @@ export interface BackupLogsParams {
 
 export const backupApi = {
   clients: (params: BackupClientsParams) =>
-    downloadBackupFile('/api/v1/admin/backup/clients', params, 'dotask-clients-backup.json'),
+    downloadBackupFile('/api/v1/admin/backup/clients', params),
   tasks: (params: BackupTasksParams) =>
-    downloadBackupFile('/api/v1/admin/backup/tasks', params, 'dotask-tasks-backup.json'),
+    downloadBackupFile('/api/v1/admin/backup/tasks', params),
   pendingClients: (params: BackupPendingClientsParams) =>
-    downloadBackupFile(
-      '/api/v1/admin/backup/pending-clients',
-      params,
-      'dotask-pending-clients-backup.json',
-    ),
+    downloadBackupFile('/api/v1/admin/backup/pending-clients', params),
   uploadedFiles: (password: string) =>
-    downloadBackupFile(
-      '/api/v1/admin/backup/uploaded-files',
-      { password },
-      'dotask-uploaded-files-backup.json',
-    ),
-  full: (password: string) =>
-    downloadBackupFile('/api/v1/admin/backup/full', { password }, 'dotask-full-backup.json'),
+    downloadBackupFile('/api/v1/admin/backup/uploaded-files', { password }),
+  full: (password: string) => downloadBackupFile('/api/v1/admin/backup/full', { password }),
   taskTypes: (password: string) =>
-    downloadBackupFile(
-      '/api/v1/admin/backup/task-types',
-      { password },
-      'dotask-task-types-backup.json',
-    ),
-  logs: (params: BackupLogsParams) =>
-    downloadBackupFile('/api/v1/admin/backup/logs', params, 'dotask-logs-backup.json'),
+    downloadBackupFile('/api/v1/admin/backup/task-types', { password }),
+  logs: (params: BackupLogsParams) => downloadBackupFile('/api/v1/admin/backup/logs', params),
   /** multipart/form-data restore — field `file`, max 100 MB. */
   restoreTaskTypes: async (file: File, password: string, overwrite: boolean): Promise<void> => {
     const { getSessionToken } = await import('@/lib/auth/storage');
