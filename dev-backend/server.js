@@ -1202,12 +1202,11 @@ const server = http.createServer(async (req, res) => {
       if (actor.role !== 'superadmin') {
         return fail(res, 403, 'FORBIDDEN_ROLE', 'Only superadmin can perform backup operations.');
       }
-      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const dump = (scope, data, name) => {
         log(actor.username, null, 'info', `Backup ${name} downloaded by ${actor.username} (password ${q.get('password') ? 'provided' : 'missing'}).`);
         return send(res, 200, JSON.stringify(data, null, 2), {
           'content-type': 'text/plain',
-          'content-disposition': `attachment; filename="dotask-${name}-${stamp}.json"`,
+          'content-disposition': `attachment; filename="dotask-${name}-backup.json"`,
         });
       };
       if (p === '/api/v1/admin/backup/clients' && method === 'GET') {
