@@ -3918,6 +3918,182 @@
         ]
       }
     },
+    "/api/v1/admin/backup/logs": {
+      "get": {
+        "tags": [
+          "Backup"
+        ],
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "log_id",
+            "in": "query",
+            "description": "Exact match on log_id.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "log_id_min",
+            "in": "query",
+            "description": "log_id >= value.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "log_id_max",
+            "in": "query",
+            "description": "log_id <= value.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "description": "Exact match: admin username, client_name, client_id, or 'server'.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actor_contains",
+            "in": "query",
+            "description": "Case-insensitive partial match on actor.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actor_ip",
+            "in": "query",
+            "description": "Filter by the IP address of the actor. Supports exact IP or CIDR notation.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "description": "Exact match: info | warning | error.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "context",
+            "in": "query",
+            "description": "Case-insensitive partial (LIKE %v%) match on the event text. Aliases: q, context_contains.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeAfter",
+            "in": "query",
+            "description": "time >= (ISO-8601). Aliases: time_after, after.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "timeBefore",
+            "in": "query",
+            "description": "time <= (ISO-8601). Aliases: time_before, before.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "message": "Missing/invalid token."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only superadmin can perform backup operations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN_ROLE",
+                    "message": "Only superadmin can perform backup operations."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled server error (logged in audit log with actor=server).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Unhandled server error (logged in audit log with actor=server)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/admin/backup/uploaded-files": {
       "get": {
         "tags": [
