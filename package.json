@@ -5,6 +5,7 @@
   "description": "DoTask admin panel — dark/neon-green UI over the DoTask API v1 (swagger.json)",
   "scripts": {
     "dev": "next dev -p 3000",
+    "dev:backend": "node dev-backend/server.js",
     "build": "next build",
     "start": "next start -p 3000",
     "generate:types": "openapi-typescript swagger.json -o lib/api-client/schema.ts"

@@ -38,6 +38,27 @@ Alternatively set `NEXT_PUBLIC_API_URL=https://api.example.com` to call the
 API cross-origin directly. Copy `.env.example` to `.env.local` to persist
 either setting.
 
+### No backend at hand? Use the bundled dev backend
+
+`dev-backend/server.js` is a dependency-free, in-memory implementation of the
+`/api/v1/admin` API (see `swagger.json`) with seeded data — handy for local
+development and the sandboxed live preview. Start it, then point the panel at
+it:
+
+```bash
+node dev-backend/server.js            # http://127.0.0.1:8080
+API_PROXY_TARGET=http://127.0.0.1:8080 npm run dev
+```
+
+Seeded accounts: `admin/admin123` (superadmin), `operator/operator123`
+(normaladmin), `viewer/viewer123` (readonlyadmin, forced password change).
+State is in-memory only — restarting the backend resets it.
+
+> **Note:** with `npm run dev` the `API_PROXY_TARGET` rewrites are evaluated
+> at server start, but a **production** build (`npm run build` + `npm start`)
+> bakes the rewrites into `.next` at **build** time — set
+> `API_PROXY_TARGET` before building in that case.
+
 ### Regenerating API types after a swagger change
 
 ```bash
