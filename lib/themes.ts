@@ -30,6 +30,26 @@ export const THEMES: ThemeOption[] = [
     preview: ['#080d10', '#00cdf5', '#e6f2f5'],
   },
   {
+    id: 'blue',
+    label: 'Blue Neon',
+    preview: ['#070b10', '#1e8fff', '#e6edf5'],
+  },
+  {
+    id: 'violet',
+    label: 'Violet Neon',
+    preview: ['#0b0810', '#8b3dff', '#eae6f2'],
+  },
+  {
+    id: 'magenta',
+    label: 'Magenta Neon',
+    preview: ['#100710', '#ff2eaf', '#eee5ed'],
+  },
+  {
+    id: 'amber',
+    label: 'Amber Neon',
+    preview: ['#0d0a06', '#ffb000', '#ece6dc'],
+  },
+  {
     id: 'silver',
     label: 'Silver Neon',
     preview: ['#0a0b0b', '#9faeb4', '#edf1f2'],
@@ -38,6 +58,18 @@ export const THEMES: ThemeOption[] = [
     id: 'light',
     label: 'Daylight',
     preview: ['#f1f4f2', '#00a45d', '#10201a'],
+    light: true,
+  },
+  {
+    id: 'paper',
+    label: 'Paper (sepia)',
+    preview: ['#f4f1ea', '#8c4a1f', '#2b241c'],
+    light: true,
+  },
+  {
+    id: 'slate',
+    label: 'Slate (cool)',
+    preview: ['#eef1f4', '#1f5688', '#1a242e'],
     light: true,
   },
 ];
