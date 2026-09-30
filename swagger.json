@@ -131,12 +131,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -203,16 +198,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/admins/query": {
@@ -372,16 +359,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/admins/search": {
@@ -484,16 +463,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/admins/{username}": {
@@ -647,12 +618,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "patch": {
         "tags": [
@@ -804,12 +770,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "delete": {
         "tags": [
@@ -925,12 +886,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/me/change-password": {
@@ -1008,16 +964,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/auth/login": {
@@ -1173,16 +1121,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/downloadable": {
@@ -1295,12 +1235,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -1378,16 +1313,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/downloadable/query": {
@@ -1571,16 +1498,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/downloadable/search": {
@@ -1683,16 +1602,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/downloadable/{file_id}": {
@@ -1795,12 +1706,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/downloadable/{file_id}/links": {
@@ -1923,12 +1829,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/downloadable/links/{link_id}/expire": {
@@ -2015,12 +1916,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/downloadable/links/{link_id}": {
@@ -2107,12 +2003,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/downloadable/links/query": {
@@ -2290,16 +2181,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/uploadable/links": {
@@ -2427,12 +2310,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/uploadable/links/{link_id}/expire": {
@@ -2519,12 +2397,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/uploadable/links/{link_id}": {
@@ -2611,12 +2484,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/uploadable/links/query": {
@@ -2786,16 +2654,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/uploadable/query": {
@@ -2971,16 +2831,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/uploadable/{file_id}": {
@@ -3067,12 +2919,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/files/uploadable/{file_id}/download": {
@@ -3150,16 +2997,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/backup/task-types": {
@@ -3248,12 +3087,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/backup/task-types/restore": {
@@ -3350,12 +3184,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/backup/clients": {
@@ -3544,12 +3373,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/backup/tasks": {
@@ -3748,12 +3572,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/backup/pending-clients": {
@@ -3910,12 +3729,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/backup/logs": {
@@ -4086,12 +3900,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/backup/uploaded-files": {
@@ -4180,12 +3989,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/backup/full": {
@@ -4274,12 +4078,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/clients": {
@@ -4407,12 +4206,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/clients/{client_id}": {
@@ -4550,12 +4344,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -4639,16 +4428,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "delete": {
         "tags": [
@@ -4732,12 +4513,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/clients/query": {
@@ -5011,16 +4787,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/clients/search": {
@@ -5123,16 +4891,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/client/files/download/{token}": {
@@ -5456,16 +5216,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/": {
@@ -5689,12 +5441,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/logs/backup": {
@@ -5874,12 +5621,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/pending-clients/query": {
@@ -6049,16 +5791,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/pending-clients/search": {
@@ -6161,16 +5895,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/pending-clients/{client_id}/confirm": {
@@ -6324,12 +6050,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/pending-clients/{client_id}": {
@@ -6415,12 +6136,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/settings": {
@@ -6480,16 +6196,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "patch": {
         "tags": [
@@ -6599,12 +6307,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/tasks": {
@@ -6732,12 +6435,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/tasks/{task_id}": {
@@ -6875,12 +6573,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "delete": {
         "tags": [
@@ -6980,12 +6673,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -7069,16 +6757,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/tasks/query": {
@@ -7388,16 +7068,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/tasks/search": {
@@ -7500,16 +7172,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/task-types": {
@@ -7637,12 +7301,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -7709,16 +7368,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/task-types/{task_type_id}": {
@@ -7841,12 +7492,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -7931,16 +7577,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       },
       "delete": {
         "tags": [
@@ -8041,12 +7679,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/task-types/query": {
@@ -8172,16 +7805,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     },
     "/api/v1/admin/task-types/search": {
@@ -8284,16 +7909,8 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
+        }
       }
     }
   },
@@ -9325,6 +8942,9 @@
       }
     }
   },
+  "security": [
+    { }
+  ],
   "tags": [
     {
       "name": "Admin"
