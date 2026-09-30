@@ -432,7 +432,7 @@ function RestoreTaskTypesModal({
     <Modal open title="Restore task types" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-xs leading-relaxed text-fog-dim">
-          Upload a task-types backup file (max 100 MB). Restoring replaces the task types on the
+          Upload a task-types backup file. Restoring replaces the task types on the
           server{overwrite ? ', overriding the existing ones' : ''}.
         </p>
         <Field label="Backup file" htmlFor="rtt-file">

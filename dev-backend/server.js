@@ -491,14 +491,7 @@ function ipMatches(stack, filter) {
 function readBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    let size = 0;
     req.on('data', (c) => {
-      size += c.length;
-      if (size > 110 * 1024 * 1024) {
-        reject(new Error('too large'));
-        req.destroy();
-        return;
-      }
       chunks.push(c);
     });
     req.on('end', () => resolve(Buffer.concat(chunks)));

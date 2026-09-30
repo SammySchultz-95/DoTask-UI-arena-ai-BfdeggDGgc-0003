@@ -1141,7 +1141,7 @@
                 "properties": {
                   "file": {
                     "type": "string",
-                    "description": "The file part (field name is not enforced; first uploaded file is used; max 100 MB).",
+                    "description": "The file part (field name is not enforced; first uploaded file is used; no size limit).",
                     "format": "binary"
                   }
                 }
@@ -3123,7 +3123,7 @@
                 "properties": {
                   "file": {
                     "type": "string",
-                    "description": "The file part (field name is not enforced; first uploaded file is used; max 100 MB).",
+                    "description": "The file part (field name is not enforced; first uploaded file is used; no size limit).",
                     "format": "binary"
                   }
                 }
@@ -4999,7 +4999,7 @@
                 "properties": {
                   "file": {
                     "type": "string",
-                    "description": "The file part (field name is not enforced; first uploaded file is used; max 100 MB).",
+                    "description": "The file part (field name is not enforced; first uploaded file is used; no size limit).",
                     "format": "binary"
                   }
                 }

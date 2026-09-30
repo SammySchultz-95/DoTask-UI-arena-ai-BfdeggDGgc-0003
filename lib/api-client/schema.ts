@@ -48,13 +48,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -263,13 +256,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -346,13 +332,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
@@ -845,13 +824,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -1017,13 +989,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -1096,13 +1061,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -1135,7 +1093,7 @@ export interface paths {
                     "multipart/form-data": {
                         /**
                          * Format: binary
-                         * @description The file part (field name is not enforced; first uploaded file is used; max 100 MB).
+                         * @description The file part (field name is not enforced; first uploaded file is used; no size limit).
                          */
                         file: string;
                     };
@@ -1304,13 +1262,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -1387,13 +1338,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
@@ -1934,13 +1878,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -2373,13 +2310,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -2479,13 +2409,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
@@ -2661,13 +2584,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description No UploadedFile row with that id, or the file is missing from storage. */
                 404: {
                     headers: {
@@ -2826,7 +2742,7 @@ export interface paths {
                     "multipart/form-data": {
                         /**
                          * Format: binary
-                         * @description The file part (field name is not enforced; first uploaded file is used; max 100 MB).
+                         * @description The file part (field name is not enforced; first uploaded file is used; no size limit).
                          */
                         file: string;
                     };
@@ -3699,13 +3615,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Client not found. */
                 404: {
                     headers: {
@@ -4048,13 +3957,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -4131,13 +4033,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
@@ -4277,7 +4172,7 @@ export interface paths {
                     "multipart/form-data": {
                         /**
                          * Format: binary
-                         * @description The file part (field name is not enforced; first uploaded file is used; max 100 MB).
+                         * @description The file part (field name is not enforced; first uploaded file is used; no size limit).
                          */
                         file: string;
                     };
@@ -4490,13 +4385,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
@@ -4894,13 +4782,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -4977,13 +4858,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
@@ -5306,13 +5180,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -5608,13 +5475,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Task not found. */
                 404: {
@@ -5983,13 +5843,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -6067,13 +5920,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -6144,13 +5990,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
@@ -6336,13 +6175,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description TaskType not found. */
                 404: {
@@ -6650,13 +6482,6 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {
                     headers: {
@@ -6733,13 +6558,6 @@ export interface paths {
                          */
                         "application/json": components["schemas"]["ErrorEnvelope"];
                     };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description Unhandled server error (logged in audit log with actor=server). */
                 500: {

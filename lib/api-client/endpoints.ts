@@ -332,7 +332,7 @@ export const downloadableFilesApi = {
       '/api/v1/admin/files/downloadable/search',
       { params: params as QueryParams },
     ),
-  /** multipart/form-data upload — field name `file`, max 100 MB. */
+  /** multipart/form-data upload — field name `file` (no size limit). */
   upload: (file: File) => {
     const formData = new FormData();
     formData.set('file', file);
@@ -714,7 +714,7 @@ export const backupApi = {
   taskTypes: (password: string) =>
     downloadBackupFile('/api/v1/admin/backup/task-types', { password }),
   logs: (params: BackupLogsParams) => downloadBackupFile('/api/v1/admin/backup/logs', params),
-  /** multipart/form-data restore — field `file`, max 100 MB. */
+  /** multipart/form-data restore — field `file` (no size limit). */
   restoreTaskTypes: async (file: File, password: string, overwrite: boolean): Promise<void> => {
     const { getSessionToken } = await import('@/lib/auth/storage');
     const { ApiError } = await import('./client');
