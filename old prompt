@@ -1,0 +1,97 @@
+#prompt 1
+according to `DoTask_Admin_Panel_Frontend_Prompt (4).md`  and `swagger.json` code and develop the UI of server.
+panel should have a modern style. use a dark theme
+panel color theme should be in black and green(shiny green) style
+
+
+#prompt 2
+i've update the swagger.json (commit 202d2862d8628bdc08687519b783f57ad801bf92). in this update i've add serverconfig API . 
+
+you should add a new sidebar and page for server config (after admins before logs). in this page readonly and normal admin can only see the server configs but super admin can also modify them.
+
+
+
+you should also do some other changes :
+
+1. when admin click on the logo of admin at left Bottom, a dropdown menu should appeare at top of the logo and in it the is two menu : Sign out and Profile.  clicking on profile menu would cause to appeare a pop up box. it has two box inside it. left box is to see the admin (himself) info and right box is to change the password
+2. also i change a the admins rule. normal admin can just see other normal admins and readonly admins. read only admin cant see any other admins, even other readonly admins. super admins can see all admins. API query admin would handle this.
+3. this is IMPORTANT : when a normal admin click on the admin table entry or task type entry, he can see its detail but he cant change and modify them. also read only users can see task type and tasks and clients and other details but he cant change and modify them
+4. in sidebar : beside the Clients sidebar title show the number of running clients. beside the Pending clients title show the number of pending clients. and beside the admins title show the number of online
+5. also i add an API for deleting download links /api/v1/admin/files/downloadable/links/{link_id} and an API to delete upload links /api/v1/admin/files/uploadable/links/{link_id}. you should add a button at right of download link entry to delete it and also a button at right of upload links to delete it.
+
+
+#prompt 3
+I've updated the server backend and it has some changes ( new branch is a1456e32d295de17535a3e1064ff6e8d8da370ca, and old branch is 65f2c3ff1740295aab6815db961cda71471a58df). you can see swagger.json file. first analyze the swagger.json file and compare swagger.json file in old and new branch. then i want you to update your self according to the changes. i would explain it:
+
+1. "HAS IP" field in clients page filter should be string because in /api/v1/admin/clients/query has_ip is a string. its input is a an ip (string).
+2. "HAS IP" field in pending clients page filter should be string because in /api/v1/admin/pending-clients/query has_ip is a string. its input is a an ip (string).
+3. you should change "Edit Client" box in clients page to "Client Info". this box should show all information of a client. some fields are changeable and some of the are not. changeable fields are client name, status(select dropdown), wait time, wait time 2. notchangeable fields are client id, creation time, last check in, requests count, client ip stack (a list of ip), last max wait time(number), online status. normaladmin and superadmin are able to change changeable info in this box.
+4. clients table entry should change to : #, client_id, client_name, online_status,last_check_in, status, requests_count, latest_ip, actions button
+5. clients status field in client info box in clients page should be a select of tree opt ion : running, shutdown, suspended.
+6. when a task status is sent or completed, task details are not changeable by admins. but you should show all details of a task in task detail box in client tasks page
+7. i add actor_ip to logs entry. so from now logs table entry should be : #, log_id, time, actor, actor_ip, level, context. you should also add actor_ip to log detail box
+8. status and pull_ip and response_ip and pull_time and response_time and response of a task are not changeable by admins. so admins should not be able to change these info in task detail box in client tasks page
+
+do these changes
+
+#prompt 4
+good. I've update the swagger.json file(branch 5ac309bf6edc81eca0cc6ae40671a64a85b268f9). now you have to do following changes:
+
+1. all wait_time and wait_time_2 are integer number not float, but they are in millisecond. so fix all of the wait_time and wait_time_2 fields.
+2. default value of wait_time and wait_time_2 in creating new client and creating new task for a client is the same as wait_time and wait_time_2 in server config.
+3. add number of online clients to dashboard (/api/v1/admin/dashboard/summary).
+4. add a geek style and modern neon welcome in top of dashboard that contain this text as title "Welcome Back &lt;username of admin&gt;! Clients are waiting for you!".
+5. in clients sidebar you should show number of online clients at right of title in sidebar instead of number of running clients.
+6. when admin select a task type in creating new task for a client, then task_type_description should appeare below task context.
+
+do these changes
+
+
+#prompt 5
+I've update the swagger.json file. do following changes:
+
+1. remove has_description filter field in task_types (I've already remove it from /api/v1/admin/task-types/query)
+2. add a logo to website at browser tap (i mean the logo that is visible in browser tab at top). also the name that is visible in browser tab on top should be "DoTask Panel".
+3. default value for wait_time and wait_time_2 in creating a new task for a client should be same as client wait_time and wait_time_2. so you should update default value for these two field in creating new task box in clients page and client tasks.
+4. client id field in creating new upload link should be a select of clients
+5. if i click on a download file in Downloads page it would show its links. then if i click on it again it should disappeare its links.
+6. add a copy button to downloadable file links entry in Downloads page to copy the link. also add a copy button to upload links entry in uploads page
+7. task context in task creation can be empty.
+8. add backup button in clients page at top right of page. it would open a pop up box. that have filter fields (use all filter fields in /api/v1/admin/backup/clients) and a password field and a get backup button to get the backup.
+9. add backup button in client tasks page at top right of page. it would open a pop up box. that have filter fields (use all filter fields in /api/v1/admin/backup/tasks) and a password field and a get backup button to get the backup.
+10. add backup button in task types page at top right of page. it would open a pop up box. that have no filter fields it have a password field and a get backup button to get the backup (/api/v1/admin/backup/task-types).
+11. add backup button in pending clients page at top right of page. it would open a pop up box. that have filter fields (use all filter fields in /api/v1/admin/backup/pending-clients) and a password field and a get backup button to get the backup.
+12. add backup button in upload page at top right of page. it would open a pop up box. it has a password field and a get backup button to get the backup (/api/v1/admin/backup/uploaded-files).
+13. add backup button box in server config page at top right of page. it has a password field and a get backup button to get the backup (/api/v1/admin/backup/full). it is full backup of server
+14. add a restore button in task types page at top right of page. it would open a pop up box. it contain a password field and also an override checkbox. /api/v1/admin/backup/task-types/restore
+15. NOTICE just super admins have access to get backups or restore a backup
+
+do these changes
+
+#prompt 6
+I've update the swagger.json file (commit 202b1b3a3cefc779282e8b695f572d04dd9e4ec7)
+
+fix the bug in getting backup. when i click "Get Backup" button, it would fail (error = "Backup failed with status 404."). verify it and fix it.
+
+
+
+also do following updates and changes
+
+1. add backup button in logs page at top right of page. it would open a pop up box. that have filter fields (use all filter fields in /api/v1/admin/backup/logs) and a password field and a get backup button to get the backup.
+2. when admin click on account menu at bottom left, a menu appear. it should contain two item. Sign Out and Setting. when admin click on setting a pop up box should appear that has a sidebar at left. sidebar has two item : the first sidebar item is "General". it contain a color theme select (i will explain it more later). the second item in sidebar is Profile. profile is exactly like before. it has two box. left box contain all admin info. right box is for changing password.
+3. you should add a more color themes to the panel. and admin should be able to change the theme of panel in setting-&gt;general. your first color theme (current color theme) that is black green neon is so perfect. i want you to add more themes. for example black red neon style, black cyan neon style, black gray neon style. also light themes and etc. this is your creativity to add perfect color themes. the default color theme is current black green theme (do not touch current theme) 
+4. you should add a box at right of pending clients page. it contain all of the info of selected pending client.
+5. sidebar wight should be changeable. also the wight of leftbox and rightbox in clients and pending clients and task types and client tasks and downloads and uploads and admins and logs pages should be changeable. 
+6. clicking on task id in table entry in client tasks page and clicking on client id in table entry in clients page and clicking on client id in table entry in pending clients page would cause to copy that value
+
+do these changes
+
+#prompt 7
+in task detail box in client tasks page, you should show all task info. some of them are changeable and some of them are not. but you should show all of them even after sent. but after sent all of them become unchangeable.
+
+
+#prompt 8
+i've update swagger.json (com,it 66198028bdd612de9e256e7db13452b5ba76bd37)
+
+now upload and downloads do not have any limits. i mean admin can upload any size of file and clients can download it. also clients can upload any size of file in upload links
+
